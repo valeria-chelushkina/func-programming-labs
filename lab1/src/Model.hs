@@ -1,0 +1,13 @@
+-- | Domain types, type classes and their instances belong here.
+--
+-- Planned entities (one data type + FromRow/Repository instances each):
+--
+--   * Resource      (resources)
+--   * Author        (authors)
+--   * User          (users)
+--   * UsageStat     (usage_stats)
+--   * ResourceUrl   (resource_urls)
+--   * lookups: Kind, Purpose, UsageCondition
+--
+-- Intentionally empty for now: this is only the project skeleton.
+module Model () where

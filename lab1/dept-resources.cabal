@@ -1,0 +1,21 @@
+cabal-version:      3.0
+name:               dept-resources
+version:            0.1.0.0
+build-type:         Simple
+synopsis:           Information resources of the department
+description:        Course project for Functional Programming.
+
+executable dept-resources
+  main-is:          Main.hs
+  hs-source-dirs:   app, src
+  other-modules:    Db
+                  , Model
+  build-depends:    base >= 4.18 && < 5
+                  , mysql-haskell >= 1.3 && < 1.4
+                  , io-streams
+                  , text
+                  , bytestring
+                  , time
+                  , containers
+  default-language: Haskell2010
+  ghc-options:      -Wall
