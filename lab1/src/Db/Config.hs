@@ -1,18 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 
--- | Connection settings and a bracket-based helper for opening MySQL.
-module Db
+-- | Database connection settings.
+module Db.Config
   ( DbConfig (..)
   , defaultConfig
-  , withConnection
+  , toConnectInfo
   ) where
 
-import Control.Exception (bracket)
 import Data.ByteString (ByteString)
-import Database.MySQL.Base
+import Database.MySQL.Base (ConnectInfo (..), defaultConnectInfoMB4)
 
--- | Everything needed to open a connection.
--- Keep credentials here for now; later they can come from env vars or CLI.
 data DbConfig = DbConfig
   { dbHost     :: String
   , dbPort     :: Int
@@ -39,8 +36,3 @@ toConnectInfo cfg = defaultConnectInfoMB4
   , ciUser     = dbUser cfg
   , ciPassword = dbPassword cfg
   }
-
--- | Opens a connection, runs the action, closes the connection even on error.
-withConnection :: DbConfig -> (MySQLConn -> IO a) -> IO a
-withConnection cfg action =
-  bracket (connect (toConnectInfo cfg)) close action

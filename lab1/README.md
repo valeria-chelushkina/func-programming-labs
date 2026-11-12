@@ -54,23 +54,37 @@ Expected output:
 Connected to MySQL 8.4.x
 ```
 
-If the database is not running, the program prints `DB connection failed: ...`
+If the database is not running, the program prints `Error: ...`
 instead of crashing.
 
 ## Project layout
 
 ```
-dept-resources.cabal   build configuration
+dept-resources.cabal            build configuration
 cabal.project
-app/Main.hs            entry point: UTF-8 setup + connection smoke test
-src/Db.hs              DbConfig, defaultConfig, withConnection
-src/Model.hs           placeholder for domain types and type classes
-sql/schema.sql         9 tables
+app/Main.hs                     entry point + read-only smoke test
+src/Model/Resource.hs           pure domain type, no IO
+src/Repository/Class.hs         FromRow + Repository classes
+src/Repository/Resource.hs      instances for the resources table
+src/Db/Config.hs                DbConfig + defaultConfig
+src/Db/Connection.hs            withConnection / withTransaction
+src/Ui/Render.hs                console formatting
+sql/schema.sql                  9 tables
+```
+
+Planned additions (same pattern):
+
+```
+src/Model/Author.hs             src/Repository/Author.hs
+src/Model/User.hs               src/Repository/User.hs
+src/Model/Filters.hs            src/Repository/Search.hs
+src/Service/Resource.hs         src/Service/Stats.hs
+src/Ui/Menu.hs
 ```
 
 ## Connection settings
 
-`src/Db.hs` -> `defaultConfig`:
+`src/Db/Config.hs` -> `defaultConfig`:
 
 - host: `127.0.0.1`
 - port: `3306`
@@ -82,8 +96,9 @@ Change them there if your MySQL setup differs.
 
 ## Next steps (not implemented)
 
-1. Domain types in `src/Model.hs` (`Resource`, `Author`, `User`, ...).
-2. `FromRow` class + instances.
-3. `Repository` class + instances (CRUD).
+1. Domain types for the remaining entities (`Author`, `User`, `ResourceUrl`, ...).
+2. `FromRow` / `Repository` instances for them.
+3. Write path (`insert`, `update`, `delete`) in `src/Service/`.
 4. Search and statistics queries.
-5. Console UI in `app/Main.hs`.
+5. Console UI in `app/Main.hs` + `src/Ui/Menu.hs`.
+

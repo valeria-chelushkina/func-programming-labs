@@ -3,14 +3,16 @@
 module Main where
 
 import Control.Exception (SomeException, displayException, try)
-import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import Database.MySQL.Base (MySQLConn, MySQLValue (..), query_)
 import System.IO (hSetEncoding, stdin, stdout, utf8)
 import qualified System.IO.Streams as Streams
 
-import Db (defaultConfig, withConnection)
-import Model (Resource (..), Repository (..))
+import Db.Config (defaultConfig)
+import Db.Connection (withConnection)
+import Repository.Class (Repository (..))
+import Repository.Resource ()
+import Ui.Render (printResource)
 
 main :: IO ()
 main = do
@@ -42,7 +44,3 @@ checkConnection conn = do
   case rs of
     ([MySQLText v] : _) -> T.putStrLn ("Connected to MySQL " <> v)
     _                   -> putStrLn "Connected, but VERSION() returned no rows."
-
-printResource :: Resource -> IO ()
-printResource r =
-  T.putStrLn ("  #" <> T.pack (show (resId r)) <> "  " <> resName r)
