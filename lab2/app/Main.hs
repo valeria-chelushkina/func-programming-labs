@@ -114,9 +114,13 @@ elapsed start end = realToFrac (diffUTCTime end start)
 
 validate :: Double -> Double -> Double -> Either String ()
 validate a b eps
-  | eps <= 0   = Left "epsilon must be positive"
-  | a == b     = Left "A and B must be different"
-  | otherwise  = Right ()
+  | not (finite a) || not (finite b) = Left "A and B must be finite numbers"
+  | not (finite eps)                 = Left "epsilon must be a finite number"
+  | eps <= 0                         = Left "epsilon must be positive"
+  | a == b                          = Left "A and B must be different"
+  | otherwise                       = Right ()
+  where
+    finite x = not (isNaN x || isInfinite x)
 
 normalizeBounds :: Double -> Double -> (Double, Double, Double)
 normalizeBounds a b

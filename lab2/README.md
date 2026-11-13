@@ -22,7 +22,8 @@ lab2/
 ├── app/Main.hs          CLI: function, bounds, epsilon, mode, timing
 ├── src/Integrands.hs    selectable functions
 ├── src/Integration.hs   midpoint rule, Richardson control, parallel driver
-└── scripts/Check.hs     checks against known integrals
+├── test/Check.hs        correctness checks (cabal test)
+└── scripts/bench.ps1    sequential/parallel benchmark
 ```
 
 ## Build and run
@@ -77,7 +78,8 @@ parallel result (also when `--mode both` is used).
 
 ## What the program does
 
-1. Validates `EPSILON > 0` and `A != B`.
+1. Validates that `A`, `B`, and `EPSILON` are finite, `EPSILON > 0`, and
+   `A != B`.
 2. If `A > B`, swaps the bounds and negates the result.
 3. Doubles the number of midpoint-rule intervals until the Richardson error
    estimate is at most `EPSILON`.
@@ -115,6 +117,7 @@ sum.
 | `cos` | cos(x) |
 | `exp` | eˣ |
 | `gauss` | e^(−x²) |
+| `heavy` | sum sin(kx), k = 1..20 — benchmark |
 | `sqrt` | √x |
 | `log` | ln(x) |
 | `inv` | 4 / (1 + x²) — π on [0, 1] |
@@ -141,10 +144,11 @@ available capabilities. To compare, run with `+RTS -N1` and `+RTS -N4`.
 ## Correctness checks
 
 ```powershell
-cabal exec -- runghc -isrc scripts\Check.hs
+cabal test
 ```
 
-The script verifies sequential and parallel results against known integrals:
+The test suite verifies sequential and parallel results against known
+integrals:
 
 | Integral | Exact value |
 |---|---|
@@ -154,10 +158,30 @@ The script verifies sequential and parallel results against known integrals:
 | ∫₀¹ eˣ dx | e − 1 |
 | ∫₀¹ (x³ − 2x + 1) dx | 1/4 |
 
+## Benchmark
+
+```powershell
+.\scripts\bench.ps1
+```
+
+The script runs the sequential version once and the parallel version with
+`+RTS -N1`, `-N2`, `-N4`, `-N8`, averages several runs, and prints a table.
+Example on a 12-thread machine with the `heavy` integrand, `eps = 1e-10`:
+
+| N | mode | time (s) | speedup |
+|---:|---|---:|---:|
+| 1 | seq | 1.345 | 1.00× |
+| 1 | par | 1.241 | 1.08× |
+| 2 | par | 0.591 | 2.28× |
+| 4 | par | 0.315 | 4.28× |
+| 8 | par | 0.197 | 6.84× |
+
+Use a heavier function or a tighter epsilon for a clearer speedup; tiny
+workloads are dominated by thread startup.
+
 ## Next steps
 
 - implement a different quadrature rule if the lab prescribes one
   (trapezoid / Simpson);
 - reuse evaluations between refinements instead of recomputing the grid;
-- compare sequential and parallel timings with `+RTS -N1 -s` vs `+RTS -N4 -s`;
 - add a short report with the timing table and speedup.

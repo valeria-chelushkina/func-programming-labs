@@ -23,6 +23,7 @@ functions =
   , NamedFunction "cos"   "cos(x)"                       cos
   , NamedFunction "exp"   "exp(x)"                       exp
   , NamedFunction "gauss" "exp(-x^2)"                    (\x -> exp (-(x * x)))
+  , NamedFunction "heavy" "sum sin(k*x), k=1..20 (benchmark)" (\x -> sum [sin (fromIntegral k * x) | k <- [1 .. 20 :: Int]])
   , NamedFunction "sqrt"  "sqrt(x)"                      sqrt
   , NamedFunction "log"   "log(x)"                       log
   , NamedFunction "inv"   "4 / (1 + x^2)  (pi on [0,1])" (\x -> 4 / (1 + x * x))
