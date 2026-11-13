@@ -7,6 +7,7 @@ import Control.Monad (when)
 import Data.Time.Clock (UTCTime, diffUTCTime, getCurrentTime)
 import GHC.Conc (getNumCapabilities)
 import System.Environment (getArgs)
+import System.Exit (die)
 import Text.Printf (printf)
 import Text.Read (readMaybe)
 
@@ -55,7 +56,8 @@ runQuiet opts lo hi sign = do
   r <- case optMode opts of
     ModeSeq -> pure (integrateSequential (fnValue fn) lo hi eps)
     _       -> integrateParallel (fnValue fn) lo hi eps
-  putStrLn (show (resultValue (signed sign r)))
+  r' <- ensureFinite (signed sign r)
+  putStrLn (show (resultValue r'))
 
 runVerbose :: Options -> Double -> Double -> Double -> IO ()
 runVerbose opts lo hi sign = do
@@ -73,14 +75,16 @@ runVerbose opts lo hi sign = do
         let r = signed sign (integrateSequential (fnValue fn) lo hi eps)
         _ <- evaluate (resultValue r)
         end <- getCurrentTime
-        pure (r, elapsed start end)
+        r' <- ensureFinite r
+        pure (r', elapsed start end)
       runPar = do
         start <- getCurrentTime
         r0 <- integrateParallel (fnValue fn) lo hi eps
         let r = signed sign r0
         _ <- evaluate (resultValue r)
         end <- getCurrentTime
-        pure (r, elapsed start end)
+        r' <- ensureFinite r
+        pure (r', elapsed start end)
 
   case optMode opts of
     ModeSeq -> do
@@ -117,10 +121,27 @@ validate a b eps
   | not (finite a) || not (finite b) = Left "A and B must be finite numbers"
   | not (finite eps)                 = Left "epsilon must be a finite number"
   | eps <= 0                         = Left "epsilon must be positive"
-  | a == b                          = Left "A and B must be different"
-  | otherwise                       = Right ()
-  where
-    finite x = not (isNaN x || isInfinite x)
+  | a == b                           = Left "A and B must be different"
+  | otherwise                        = Right ()
+
+finite :: Double -> Bool
+finite x = not (isNaN x || isInfinite x)
+
+-- | Do not print "NaN" or "Infinity" as if it were an answer.
+ensureFinite :: IntegrationResult -> IO IntegrationResult
+ensureFinite r =
+  case checkResult r of
+    Left err  -> die ("error: " <> err)
+    Right ok  -> pure ok
+
+checkResult :: IntegrationResult -> Either String IntegrationResult
+checkResult r
+  | not (finite (resultValue r)) =
+      Left "integral result is NaN or Infinity (check the function domain on [A, B])"
+  | not (finite (resultError r)) =
+      Left "error estimate is NaN or Infinity"
+  | otherwise =
+      Right r
 
 normalizeBounds :: Double -> Double -> (Double, Double, Double)
 normalizeBounds a b
