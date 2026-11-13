@@ -1,4 +1,4 @@
-# Lab Work 1 - Information Resources of the Department
+# Lab Work 1 — Variant 1 — Information Resources of the Department
 
 A web information system for managing the information resources of a university
 department. Built with **Haskell**, **Scotty**, **Lucid**, and **MySQL**.

@@ -1,4 +1,4 @@
-# Lab Work 2 — Parallel numerical integration
+# Lab Work 2 — Variant 4 — Parallel numerical integration
 
 Multithreaded Haskell application that computes a definite integral
 

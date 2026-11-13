@@ -1,4 +1,4 @@
-# Lab 3 — Textbook text processing
+# Lab Work 3 — Variant 3 — Textbook text processing
 
 Haskell application that processes a programming textbook stored in a text
 file. It works with the domain types `Symbol`, `Punctuation`, `Word`,
@@ -239,4 +239,3 @@ Expected result:
 [PASS] ...
 ALL TEXT CHECKS PASSED
 Test suite lab3-tests: PASS
-
