@@ -20,6 +20,20 @@ main = do
     , check "splits into sentences"
         (length (documentSentences (toDocument "One. Two! Three?")) == 3)
 
+    , check "preserves sentence terminators"
+        (map sentenceEnd (documentSentences (toDocument "One. Two! Three?"))
+          == [Period, Exclamation, Question])
+
+    , check "does not split decimals"
+        (length (documentSentences (toDocument "Value 3.14 is pi. Next sentence.")) == 2)
+
+    , check "does not split common abbreviations"
+        (length (documentSentences (toDocument "Т.д. це приклад. Друге речення.")) == 2)
+
+    , check "last sentence without a terminator"
+        (map sentenceEnd (documentSentences (toDocument "No final dot"))
+          == [NoPunctuation])
+
     , check "word only in first sentence"
         (findWordOnlyInFirst (toDocument "alpha beta gamma. beta delta. gamma epsilon.")
           == Just (Word "alpha"))

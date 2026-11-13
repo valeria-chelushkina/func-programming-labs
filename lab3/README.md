@@ -56,12 +56,13 @@ result    = Функціональне
 
 - reading a UTF-8 text file;
 - normalizing all whitespace runs (including tabs and newlines) to one space;
-- splitting into sentences on `.`, `!`, `?`;
+- splitting into sentences on `.`, `!`, `?`, preserving the actual terminator;
+- not splitting decimals (`3.14`) or common abbreviations (`т.д.`, `e.g.`);
 - splitting sentences into words and stripping surrounding punctuation;
 - domain types for symbols, punctuation, words, sentences, and the document;
 - finding words that occur only in the first sentence;
 - case-insensitive comparison and duplicate removal;
-- tests for normalization, tokenization, punctuation, and the query.
+- tests for normalization, tokenization, punctuation, abbreviations, and the query.
 
 ## Tests
 
@@ -73,6 +74,9 @@ The test suite covers:
 
 - tabs/spaces normalization;
 - sentence splitting;
+- preserved sentence terminators;
+- decimals and common abbreviations;
+- last sentence without a terminator;
 - the main query;
 - case-insensitive matching;
 - duplicates in the first sentence;
@@ -81,7 +85,6 @@ The test suite covers:
 
 ## Next steps
 
-1. Preserve the actual sentence terminator instead of always using `Period`.
-2. Handle abbreviations such as `т.д.` and `e.g.` without splitting them.
-3. Decide how to treat hyphenated words and numbers.
-4. Run the program on the real textbook file.
+1. Decide how to treat hyphenated words and numbers.
+2. Handle quotes and parentheses around sentence boundaries.
+3. Run the program on the real textbook file.

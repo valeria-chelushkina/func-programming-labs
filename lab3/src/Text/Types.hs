@@ -24,6 +24,7 @@ data Punctuation
   | Quote
   | OpenParen
   | CloseParen
+  | NoPunctuation
   | OtherPunctuation Char
   deriving (Eq, Ord, Show)
 
