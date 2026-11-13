@@ -9,10 +9,15 @@ executable dept-resources
   main-is:          Main.hs
   hs-source-dirs:   app, src
   other-modules:    Model.Resource
+                  , Model.Author
+                  , Model.ResourceUrl
                   , Db.Config
                   , Db.Connection
                   , Repository.Class
                   , Repository.Resource
+                  , Repository.Author
+                  , Repository.ResourceUrl
+                  , Service.Resource
                   , Ui.Render
   build-depends:    base >= 4.18 && < 5
                   , mysql-haskell >= 1.3 && < 1.4

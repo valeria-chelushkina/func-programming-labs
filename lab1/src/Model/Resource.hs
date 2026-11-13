@@ -1,15 +1,15 @@
-{-# LANGUAGE OverloadedStrings #-}
-
--- | Pure domain types. No database, no IO.
 module Model.Resource
   ( Resource (..)
+  , ResourceDraft (..)
+  , ResourceDetails (..)
   ) where
 
 import Data.Text (Text)
 import Data.Time.Calendar (Day)
 import Data.Word (Word32)
+import Model.Author (Author)
+import Model.ResourceUrl (ResourceUrl, ResourceUrlDraft)
 
--- | One row of the @resources@ table.
 data Resource = Resource
   { resId          :: Word32
   , resName        :: Text
@@ -20,4 +20,23 @@ data Resource = Resource
   , resOpenedOn    :: Day
   , resTermText    :: Text
   , resValidUntil  :: Maybe Day
+  } deriving (Show, Eq)
+
+data ResourceDraft = ResourceDraft
+  { draftName        :: Text
+  , draftAnnotation  :: Text
+  , draftKindId      :: Word32
+  , draftPurposeId   :: Word32
+  , draftConditionId :: Word32
+  , draftOpenedOn    :: Day
+  , draftTermText    :: Text
+  , draftValidUntil  :: Maybe Day
+  , draftAuthorIds   :: [Word32]
+  , draftUrls        :: [ResourceUrlDraft]
+  } deriving (Show, Eq)
+
+data ResourceDetails = ResourceDetails
+  { detailResource :: Resource
+  , detailAuthors  :: [Author]
+  , detailUrls     :: [ResourceUrl]
   } deriving (Show, Eq)
