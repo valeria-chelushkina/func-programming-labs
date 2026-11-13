@@ -16,7 +16,6 @@ import Ui.Render (printResource)
 
 main :: IO ()
 main = do
-  -- Windows console is not UTF-8 by default; this keeps Ukrainian text readable.
   hSetEncoding stdout utf8
   hSetEncoding stdin utf8
 

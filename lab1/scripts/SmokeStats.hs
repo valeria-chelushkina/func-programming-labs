@@ -61,7 +61,7 @@ checks conn u1 u2 rid = do
   check "last used is set" (isJust (ruLastUsed ru))
 
   TIO.putStrLn "4. top resources"
-  top <- topResources conn 10
+  top <- topResources conn 100
   check "resource is in the report"
     (any (\t -> trName t == "Smoke Stats Resource" && trUses t == 3) top)
 

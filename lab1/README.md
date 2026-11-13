@@ -3,7 +3,8 @@
 Skeleton for the course project "Information resources of the department"
 (Functional Programming). Haskell + MySQL.
 
-**Status:** build/DB foundation only. No UI, no CRUD, no search yet.
+**Status:** backend complete — resource/author/user CRUD, search, dictionary
+listings, usage statistics. The console UI is the remaining piece.
 
 ## Requirements
 
@@ -40,7 +41,20 @@ docker exec -it fp-mysql mysql -uroot -proot dept_resources -e "SHOW TABLES;"
 
 Expected: 9 tables.
 
-## 3. Build and run
+## 3. Load demo data (optional)
+
+Resets all application tables and inserts dictionaries, authors, users,
+10 resources, their links, and 30 usage records:
+
+```powershell
+$OutputEncoding = [System.Text.Encoding]::UTF8
+Get-Content .\sql\seed.sql -Raw -Encoding UTF8 |
+  docker exec -i fp-mysql mysql --default-character-set=utf8mb4 -uroot -proot dept_resources
+```
+
+**Warning:** this deletes existing rows in all application tables.
+
+## 4. Build and run
 
 ```powershell
 cabal update
@@ -114,6 +128,7 @@ scripts/SmokeSearch.hs          manual search check
 scripts/SmokeUser.hs            manual user check
 scripts/SmokeStats.hs           manual usage statistics check
 sql/schema.sql                  9 tables
+sql/seed.sql                    demo data (resets the tables)
 ```
 
 Planned additions (same pattern):
@@ -138,6 +153,5 @@ Change them there if your MySQL setup differs.
 ## Next steps (not implemented)
 
 1. Console UI in `app/Main.hs` + `src/Ui/Menu.hs`.
-2. `sql/seed.sql` with demo data (dictionaries, authors, users, resources, usage).
-3. Polish: show kind/purpose/condition **names** in list/details, config from env vars.
+2. Polish: show kind/purpose/condition **names** in list/details, config from env vars.
 

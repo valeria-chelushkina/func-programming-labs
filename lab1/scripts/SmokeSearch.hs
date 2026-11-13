@@ -35,7 +35,8 @@ checks :: MySQLConn -> IO ()
 checks conn = do
   TIO.putStrLn "1. empty filter"
   allRs <- searchResources conn emptyFilter
-  check "empty filter returns all 3" (length allRs == 3)
+  check "empty filter returns the test rows"
+    (all (`elem` names allRs) smokeNames)
 
   TIO.putStrLn "2. text search"
   neural <- searchResources conn emptyFilter { rfText = "neural" }
@@ -70,10 +71,17 @@ checks conn = do
   check "no matches returns empty list" (null none)
 
   blank <- searchResources conn emptyFilter { rfText = "   " }
-  check "blank text is ignored" (length blank == 3)
+  check "blank text is ignored" (length blank == length allRs)
 
 names :: [Resource] -> [T.Text]
 names = map resName
+
+smokeNames :: [T.Text]
+smokeNames =
+  [ "Smoke Search Databases"
+  , "Smoke Search Haskell"
+  , "Smoke Search Neural Networks"
+  ]
 
 check :: String -> Bool -> IO ()
 check label ok = do
