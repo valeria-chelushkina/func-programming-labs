@@ -7,18 +7,21 @@ module Service.Resource
   , removeResource
   , getResourceDetails
   , listResourceDetails
+  , searchResources
   ) where
 
 import Control.Exception (SomeException, displayException, try)
 import qualified Data.Text as T
 import Data.Word (Word32)
 import Database.MySQL.Base (MySQLConn)
+import Model.Filters (ResourceFilter (..))
 import Model.Resource (Resource (..), ResourceDetails (..), ResourceDraft (..))
 import Model.ResourceUrl (ResourceUrlDraft (..))
 import Repository.Author (findAuthorsByResource)
 import Repository.Class (Repository (..))
 import Repository.Resource (insertResource, updateResource)
 import Repository.ResourceUrl (findUrlsByResource)
+import Repository.Search (findByFilter)
 
 createResource :: MySQLConn -> ResourceDraft -> IO (Either String Word32)
 createResource conn d =
@@ -63,6 +66,11 @@ listResourceDetails :: MySQLConn -> IO [ResourceDetails]
 listResourceDetails conn = do
   rs <- findAll @Resource conn
   mapM (detailsFor conn) rs
+
+searchResources :: MySQLConn -> ResourceFilter -> IO [Resource]
+searchResources conn f =
+  let f' = f { rfText = T.strip (rfText f) }
+   in findByFilter conn f'
 
 detailsFor :: MySQLConn -> Resource -> IO ResourceDetails
 detailsFor conn r = do

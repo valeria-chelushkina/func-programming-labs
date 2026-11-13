@@ -63,13 +63,14 @@ instead of crashing.
 and lists the `resources` table.
 
 Full CRUD for resources (create with authors/URLs, read details, update,
-delete, rollback), author CRUD, and dictionary listings are covered by
-manual smoke tests:
+delete, rollback), author CRUD, dictionary listings, and search are covered
+by manual smoke tests:
 
 ```powershell
 cabal exec -- runghc -isrc scripts\SmokeCrud.hs
 cabal exec -- runghc -isrc scripts\SmokeAuthor.hs
 cabal exec -- runghc -isrc scripts\SmokeLookup.hs
+cabal exec -- runghc -isrc scripts\SmokeSearch.hs
 ```
 
 Expected: a sequence of `[PASS]` lines ending with `ALL CHECKS PASSED`.
@@ -85,11 +86,13 @@ src/Model/Resource.hs           Resource, ResourceDraft, ResourceDetails
 src/Model/Author.hs             Author + AuthorDraft
 src/Model/ResourceUrl.hs        ResourceUrl + input draft
 src/Model/Lookup.hs             Kind, Purpose, UsageCondition
+src/Model/Filters.hs            ResourceFilter
 src/Repository/Class.hs         FromRow + Repository classes
 src/Repository/Resource.hs      resource row + authors/URLs, transactional
 src/Repository/Author.hs        authors of a resource + create/update
 src/Repository/ResourceUrl.hs   URLs of one resource
 src/Repository/Lookup.hs        dictionary instances
+src/Repository/Search.hs        SQL search by text/kind/purpose/author
 src/Service/Resource.hs         full resource CRUD use-cases
 src/Service/Author.hs           author create/edit/list use-cases
 src/Service/Lookup.hs           list/get dictionaries
@@ -99,6 +102,7 @@ src/Ui/Render.hs                console formatting
 scripts/SmokeCrud.hs            manual resource CRUD check
 scripts/SmokeAuthor.hs          manual author CRUD check
 scripts/SmokeLookup.hs          manual dictionary check
+scripts/SmokeSearch.hs          manual search check
 sql/schema.sql                  9 tables
 ```
 
@@ -106,7 +110,6 @@ Planned additions (same pattern):
 
 ```
 src/Model/User.hs               src/Repository/User.hs
-src/Model/Filters.hs            src/Repository/Search.hs
 src/Model/UsageStat.hs          src/Service/Stats.hs
 src/Ui/Menu.hs
 ```
@@ -126,7 +129,6 @@ Change them there if your MySQL setup differs.
 ## Next steps (not implemented)
 
 1. `User` and `UsageStat` domain types + repositories (needed for statistics).
-2. Search filters (`Model/Filters.hs`, `Repository/Search.hs`).
-3. Statistics queries (`Service/Stats.hs`).
-4. Console UI in `app/Main.hs` + `src/Ui/Menu.hs`.
+2. Statistics queries (`Service/Stats.hs`).
+3. Console UI in `app/Main.hs` + `src/Ui/Menu.hs`.
 
