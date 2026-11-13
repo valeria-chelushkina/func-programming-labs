@@ -29,7 +29,6 @@ layout title active content = do
             navItem active "authors" "Authors" "/authors"
             navItem active "users" "Users" "/users"
             navItem active "stats" "Statistics" "/stats"
-          div_ [class_ "sidebar-foot"] "Haskell · MySQL"
         div_ [class_ "main"] $ do
           header_ [class_ "topbar"] $ do
             form_ [method_ "get", action_ "/resources", class_ "top-search"] $ do
@@ -78,7 +77,8 @@ css = mconcat
   , ".content{padding:28px 32px 48px;max-width:1240px;width:100%}"
   , ".page-title{font-size:28px;margin:0 0 6px}"
   , ".page-sub{color:var(--muted);margin:0 0 22px}"
-  , ".page-head-row{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}"
+  , ".page-head-row{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;"
+  , "  margin-bottom:28px}"
   , ".cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:22px}"
   , ".cards-4{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}"
   , ".card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);"

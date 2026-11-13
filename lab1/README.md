@@ -1,17 +1,69 @@
-# dept-resources
+# Lab Work 1 - Information Resources of the Department
 
-Skeleton for the course project "Information resources of the department"
-(Functional Programming). Haskell + MySQL + a lilac web dashboard.
+A web information system for managing the information resources of a university
+department. Built with **Haskell**, **Scotty**, **Lucid**, and **MySQL**.
 
-**Status:** complete web admin dashboard — resource/author/user CRUD, search,
-dictionary listings, usage statistics.
+The system is an admin dashboard: it stores the department's resources
+(textbooks, guides, video courses, software, datasets), their authors, network
+addresses, users and usage statistics. Resources can be searched, created,
+edited, inspected and deleted.
 
-## Requirements
+## 1. What this work is
 
-- GHC 9.10.3 and cabal 3.16 (already installed)
-- Docker (for MySQL) or a local MySQL 8 server
+Implemented features:
 
-## 1. Start MySQL
+- resource catalogue with name, annotation, kind, purpose, usage conditions,
+  opening date, usage term, and validity date;
+- many-to-many authors per resource;
+- multiple network addresses per resource, with a primary URL;
+- search by name/annotation and filters by kind and purpose;
+- add / view / edit / delete a resource, with authors and URLs saved
+  atomically in a transaction;
+- author management (create, list, edit);
+- user management (students, teachers, staff);
+- usage recording and reports: uses, unique users, last used, per-user counts;
+- dictionary listings for kinds, purposes, and usage conditions;
+- a lilac, server-rendered admin dashboard.
+
+Haskell type classes and instances are central to the data layer:
+
+- `class FromRow a` — decodes a MySQL row into a domain type;
+- `class Repository a` — generic `findAll`, `findById`, `deleteById`;
+- instances for `Resource`, `Author`, `ResourceUrl`, `Kind`, `Purpose`,
+  `UsageCondition`, and `User`.
+
+## 2. Technology stack
+
+| Layer | Technology |
+|---|---|
+| Language | Haskell, GHC 9.10.3 |
+| Build | cabal 3.16 |
+| Web framework | Scotty 0.30 (Warp/WAI) |
+| HTML | Lucid 2.11 |
+| Database | MySQL 8.4 (Docker) |
+| MySQL driver | `mysql-haskell` 1.3 (pure Haskell, no C client) |
+| Styling | Hand-written CSS, lilac palette, no JavaScript |
+| Checks | Manual smoke-test programs under `scripts/` |
+
+**Architecture pattern:** UI → Service → Repository → Db. The web layer never
+contains SQL; repositories never print HTML.
+
+## 3. How to start the app
+
+### Requirements
+
+- GHC 9.10.3 and cabal 3.16
+- Docker (for MySQL 8.4) or a local MySQL server
+- A browser
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/valeria-chelushkina/func-programming-labs.git
+cd func-programming-labs/lab1
+```
+
+### 2. Start MySQL
 
 ```powershell
 docker run -d --name fp-mysql -p 3306:3306 `
@@ -20,31 +72,20 @@ docker run -d --name fp-mysql -p 3306:3306 `
   mysql:8.4
 ```
 
-If the container already exists, just start it:
+If the container already exists:
 
 ```powershell
 docker start fp-mysql
 ```
 
-## 2. Create the schema
+### 3. Create the schema
 
 ```powershell
-Get-Content .\sql\schema.sql -Raw |
-  docker exec -i fp-mysql mysql -uroot -proot dept_resources
+Get-Content .\sql\schema.sql -Raw -Encoding UTF8 |
+  docker exec -i fp-mysql mysql --default-character-set=utf8mb4 -uroot -proot dept_resources
 ```
 
-Check:
-
-```powershell
-docker exec -it fp-mysql mysql -uroot -proot dept_resources -e "SHOW TABLES;"
-```
-
-Expected: 9 tables.
-
-## 3. Load demo data (optional)
-
-Resets all application tables and inserts dictionaries, authors, users,
-10 resources, their links, and 30 usage records:
+### 4. Load demo data (optional)
 
 ```powershell
 $OutputEncoding = [System.Text.Encoding]::UTF8
@@ -52,9 +93,11 @@ Get-Content .\sql\seed.sql -Raw -Encoding UTF8 |
   docker exec -i fp-mysql mysql --default-character-set=utf8mb4 -uroot -proot dept_resources
 ```
 
-**Warning:** this deletes existing rows in all application tables.
+**Warning:** `seed.sql` deletes existing rows in all application tables. It
+inserts dictionaries, 6 authors, 5 users, 10 resources, their links, and 30
+usage records.
 
-## 4. Run the web dashboard
+### 5. Build and run
 
 ```powershell
 cabal update
@@ -62,25 +105,163 @@ cabal build
 cabal run
 ```
 
-Then open **http://localhost:8080** in a browser. Stop the server with `Ctrl+C`.
+Open **http://127.0.0.1:8080** (or `http://localhost:8080`). Stop the server
+with `Ctrl+C`.
 
-If the database is not running, the pages show an error instead of crashing.
+The first `cabal build` downloads and compiles the web/MySQL dependencies and
+can take several minutes. Later builds are incremental.
 
-## How to check that it works
+Connection settings are in `src/Db/Config.hs` (`127.0.0.1:3306`,
+database `dept_resources`, user `root`, password `root`).
 
-Start the server and open:
+## 4. Main architecture
 
-- `/` — dashboard with counts and top resources;
-- `/resources` — search bar, kind/purpose filters, table;
-- `/resources/1` — details, authors, URLs, usage, delete;
-- `/resources/new` — create form;
-- `/resources/1/edit` — pre-filled edit form;
-- `/authors`, `/users` — lists and create/edit forms;
-- `/stats` — per-resource and per-user usage.
+```
+lab1/
+├── app/Main.hs                  starts the web server
+├── src/
+│   ├── Web/
+│   │   ├── App.hs               routes, form parsing, handlers
+│   │   ├── Layout.hs            page shell + lilac CSS
+│   │   ├── Components.hs        cards, panels, alerts, form controls
+│   │   ├── Forms.hs             form state types
+│   │   └── Pages/               one module per page
+│   │       ├── Dashboard.hs
+│   │       ├── Resources.hs
+│   │       ├── ResourceDetails.hs
+│   │       ├── ResourceForm.hs
+│   │       ├── Authors.hs
+│   │       ├── Users.hs
+│   │       ├── Stats.hs
+│   │       └── NotFound.hs
+│   ├── Service/                 use-cases, validation, transactions
+│   │   ├── Resource.hs
+│   │   ├── Author.hs
+│   │   ├── User.hs
+│   │   ├── Lookup.hs
+│   │   └── Stats.hs
+│   ├── Repository/              SQL + FromRow/Repository instances
+│   │   ├── Class.hs
+│   │   ├── Resource.hs
+│   │   ├── Author.hs
+│   │   ├── ResourceUrl.hs
+│   │   ├── Lookup.hs
+│   │   ├── Search.hs
+│   │   ├── User.hs
+│   │   └── Stats.hs
+│   ├── Model/                   pure domain types, no IO
+│   │   ├── Resource.hs
+│   │   ├── Author.hs
+│   │   ├── ResourceUrl.hs
+│   │   ├── Lookup.hs
+│   │   ├── Filters.hs
+│   │   ├── User.hs
+│   │   └── Stats.hs
+│   └── Db/
+│       ├── Config.hs            connection settings
+│       └── Connection.hs        withConnection / withTransaction
+├── sql/
+│   ├── schema.sql               9 tables
+│   └── seed.sql                 demo data
+├── scripts/                     manual smoke tests
+└── docs/screenshots/            UI screenshots
+```
 
-Full CRUD for resources (create with authors/URLs, read details, update,
-delete, rollback), author CRUD, dictionary listings, search, user
-management, and usage statistics are also covered by manual smoke tests:
+| Layer | Responsibility | Must not do |
+|---|---|---|
+| `Web.Pages` / `Web.Layout` / `Web.Components` | render HTML | query the database |
+| `Web.App` | routes, parse forms, call services | build SQL |
+| `Service.*` | validation, use-cases, transactions | print HTML |
+| `Repository.*` | SQL, row decoding | validate business rules |
+| `Db.*` | connect/close, transactions | domain logic |
+| `Model.*` | pure types | IO or MySQL |
+
+### Database structure
+
+9 tables
+
+```mermaid
+erDiagram
+    KINDS ||--o{ RESOURCES : kind
+    PURPOSES ||--o{ RESOURCES : purpose
+    USAGE_CONDITIONS ||--o{ RESOURCES : conditions
+    RESOURCES ||--o{ RESOURCE_AUTHORS : has
+    AUTHORS ||--o{ RESOURCE_AUTHORS : writes
+    RESOURCES ||--o{ RESOURCE_URLS : has
+    USERS ||--o{ USAGE_STATS : performs
+    RESOURCES ||--o{ USAGE_STATS : receives
+```
+
+| Table | Purpose | Key columns |
+|---|---|---|
+| `kinds` | dictionary: resource kind | `id`, `name` |
+| `purposes` | dictionary: purpose | `id`, `name` |
+| `usage_conditions` | dictionary: access conditions | `id`, `name`, `description` |
+| `authors` | people who created resources | `id`, `full_name`, `email`, `affiliation` |
+| `resources` | main catalogue | `id`, `name`, `annotation`, `kind_id`, `purpose_id`, `condition_id`, `opened_on`, `term_text`, `valid_until` |
+| `resource_authors` | M:N resource ↔ author | `resource_id`, `author_id` |
+| `resource_urls` | 1:N resource ↔ URLs | `id`, `resource_id`, `url`, `label`, `is_primary` |
+| `users` | students / teachers / staff | `id`, `full_name`, `email`, `role`, `department` |
+| `usage_stats` | usage event log | `id`, `user_id`, `resource_id`, `used_at`, `action` |
+
+## 5. Main endpoints
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/` | dashboard: counts and top resources |
+| GET | `/resources` | list + search (`?q=`, `?kind=`, `?purpose=`) |
+| GET | `/resources/new` | new resource form |
+| POST | `/resources` | create resource |
+| GET | `/resources/:id` | details, authors, URLs, usage, delete |
+| GET | `/resources/:id/edit` | edit form |
+| POST | `/resources/:id` | update resource |
+| POST | `/resources/:id/delete` | delete resource |
+| POST | `/resources/:id/usage` | record a usage event (`userId`, `action`) |
+| GET | `/authors` | author list |
+| GET | `/authors/new` | new author form |
+| POST | `/authors` | create author |
+| GET | `/authors/:id/edit` | edit author form |
+| POST | `/authors/:id` | update author |
+| GET | `/users` | user list |
+| GET | `/users/new` | new user form |
+| POST | `/users` | create user |
+| GET | `/users/:id/edit` | edit user form |
+| POST | `/users/:id` | update user |
+| GET | `/stats` | per-resource and per-user usage reports |
+
+## 6. Screenshots
+
+### Dashboard
+
+![Dashboard](docs/screenshots/dashboard.png)
+
+### Resources: search and filters
+
+![Resources](docs/screenshots/resources.png)
+
+### Resource details, usage and links
+
+![Resource details](docs/screenshots/resource-details.png)
+
+### Add / edit resource form
+
+![Resource form](docs/screenshots/resource-form.png)
+
+### Authors
+
+![Authors](docs/screenshots/authors.png)
+
+### Users
+
+![Users](docs/screenshots/users.png)
+
+### Statistics
+
+![Statistics](docs/screenshots/stats.png)
+
+## 7. Manual checks
+
+With the server stopped, run the smoke tests from `lab1/`:
 
 ```powershell
 cabal exec -- runghc -isrc scripts\SmokeCrud.hs
@@ -91,82 +272,5 @@ cabal exec -- runghc -isrc scripts\SmokeUser.hs
 cabal exec -- runghc -isrc scripts\SmokeStats.hs
 ```
 
-Expected: a sequence of `[PASS]` lines ending with `ALL CHECKS PASSED`.
-The scripts create temporary rows and remove them, so they do not touch your data.
-
-## Project layout
-
-```
-dept-resources.cabal            build configuration
-cabal.project
-app/Main.hs                     entry point: starts the web server
-src/Web/App.hs                  routes + handlers
-src/Web/Layout.hs               page shell + lilac CSS
-src/Web/Components.hs           cards, panels, alerts, form controls
-src/Web/Forms.hs                form state types (resource/author/user)
-src/Web/Pages/Dashboard.hs      dashboard page
-src/Web/Pages/Resources.hs      resource list + search
-src/Web/Pages/ResourceDetails.hs  one resource + usage
-src/Web/Pages/ResourceForm.hs   create/edit resource form
-src/Web/Pages/Authors.hs        author list + form
-src/Web/Pages/Users.hs          user list + form
-src/Web/Pages/Stats.hs          statistics page
-src/Web/Pages/NotFound.hs       404 content
-src/Model/Resource.hs           Resource, ResourceDraft, ResourceDetails
-src/Model/Author.hs             Author + AuthorDraft
-src/Model/ResourceUrl.hs        ResourceUrl + input draft
-src/Model/Lookup.hs             Kind, Purpose, UsageCondition
-src/Model/Filters.hs            ResourceFilter
-src/Model/User.hs               User, UserDraft, Role
-src/Model/Stats.hs              UsageRecord + report types
-src/Repository/Class.hs         FromRow + Repository classes
-src/Repository/Resource.hs      resource row + authors/URLs, transactional
-src/Repository/Author.hs        authors of a resource + create/update
-src/Repository/ResourceUrl.hs   URLs of one resource
-src/Repository/Lookup.hs        dictionary instances
-src/Repository/Search.hs        SQL search by text/kind/purpose/author
-src/Repository/User.hs          users + create/update
-src/Repository/Stats.hs         usage inserts + aggregates
-src/Service/Resource.hs         full resource CRUD use-cases
-src/Service/Author.hs           author create/edit/list use-cases
-src/Service/Lookup.hs           list/get dictionaries
-src/Service/User.hs             user create/edit/list use-cases
-src/Service/Stats.hs            record usage + reports
-src/Db/Config.hs                DbConfig + defaultConfig
-src/Db/Connection.hs            withConnection / withTransaction
-scripts/SmokeCrud.hs            manual resource CRUD check
-scripts/SmokeAuthor.hs          manual author CRUD check
-scripts/SmokeLookup.hs          manual dictionary check
-scripts/SmokeSearch.hs          manual search check
-scripts/SmokeUser.hs            manual user check
-scripts/SmokeStats.hs           manual usage statistics check
-sql/schema.sql                  9 tables
-sql/seed.sql                    demo data (resets the tables)
-```
-
-Planned additions (optional):
-
-```
-authentication / admin login
-pagination and flash messages
-config from environment variables
-```
-
-## Connection settings
-
-`src/Db/Config.hs` -> `defaultConfig`:
-
-- host: `127.0.0.1`
-- port: `3306`
-- database: `dept_resources`
-- user: `root`
-- password: `root`
-
-Change them there if your MySQL setup differs.
-
-## Next steps (optional)
-
-1. Admin authentication and roles.
-2. Pagination and success/error flash messages.
-3. Config from environment variables instead of hardcoded root/root.
-
+Each prints `[PASS]` lines and `ALL ... CHECKS PASSED`, then removes its
+temporary rows.
