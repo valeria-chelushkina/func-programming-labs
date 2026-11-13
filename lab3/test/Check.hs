@@ -5,6 +5,7 @@ module Main where
 import Prelude hiding (Word)
 
 import Control.Monad (unless)
+import Data.Text (Text)
 
 import Text.Analysis
 import Text.Normalize
@@ -33,6 +34,19 @@ main = do
     , check "last sentence without a terminator"
         (map sentenceEnd (documentSentences (toDocument "No final dot"))
           == [NoPunctuation])
+
+    , check "numbers are not words"
+        (firstWords (toDocument "Version 3.14 is out. Next.")
+          == ["Version", "is", "out"])
+
+    , check "hyphenated words stay together"
+        (firstWords (toDocument "alpha-beta gamma. delta.")
+          == ["alpha-beta", "gamma"])
+
+    , check "closing quote stays with the sentence"
+        (take 2 (map sentenceEnd
+          (documentSentences (toDocument "«Hello!» world. Next.")))
+          == [Exclamation, Period])
 
     , check "word only in first sentence"
         (findWordOnlyInFirst (toDocument "alpha beta gamma. beta delta. gamma epsilon.")
@@ -65,3 +79,9 @@ check :: String -> Bool -> IO Bool
 check label ok = do
   putStrLn ((if ok then "[PASS] " else "[FAIL] ") ++ label)
   pure ok
+
+firstWords :: Document -> [Text]
+firstWords doc =
+  case documentSentences doc of
+    (s : _) -> map unWord (sentenceWords s)
+    []      -> []

@@ -31,8 +31,11 @@ toSentence = toSentenceWith Period
 toSentenceWith :: Punctuation -> Text -> Sentence
 toSentenceWith p t =
   Sentence
-    (map Word (filter (not . T.null) (map cleanWord (T.words t))))
+    (map Word (filter isWordToken (map cleanWord (T.words t))))
     p
+
+isWordToken :: Text -> Bool
+isWordToken = T.any isAlpha
 
 splitSentences :: Text -> [(Text, Punctuation)]
 splitSentences = go [] [] . T.unpack
@@ -46,10 +49,16 @@ splitSentences = go [] [] . T.unpack
     go acc cur (c : cs)
       | c `elem` (".!?" :: String) =
           if endsSentence c cur cs
-            then go ((T.pack (reverse (c : cur)), punctuation c) : acc) [] cs
+            then
+              let (closing, rest) = span isClosing cs
+                  sentenceRev = reverse closing ++ (c : cur)
+               in go ((T.pack (reverse sentenceRev), punctuation c) : acc) [] rest
             else go acc (c : cur) cs
       | otherwise =
           go acc (c : cur) cs
+
+isClosing :: Char -> Bool
+isClosing c = c `elem` ("»”\"')]}" :: String)
 
 endsSentence :: Char -> String -> String -> Bool
 endsSentence '.' cur rest =
@@ -91,4 +100,4 @@ abbreviations = Set.fromList (map T.toCaseFold
 cleanWord :: Text -> Text
 cleanWord = T.dropAround isPunctuation
   where
-    isPunctuation c = c `elem` (".,;:!?…\"'()[]{}—–" :: String)
+    isPunctuation c = c `elem` (".,;:!?…\"'“”„«»()[]{}—–-" :: String)

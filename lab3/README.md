@@ -58,6 +58,9 @@ result    = Функціональне
 - normalizing all whitespace runs (including tabs and newlines) to one space;
 - splitting into sentences on `.`, `!`, `?`, preserving the actual terminator;
 - not splitting decimals (`3.14`) or common abbreviations (`т.д.`, `e.g.`);
+- ignoring pure numbers (`3.14`, `2024`) as non-words;
+- keeping hyphenated words (`alpha-beta`) as one word;
+- keeping closing quotes/brackets with the sentence they close;
 - splitting sentences into words and stripping surrounding punctuation;
 - domain types for symbols, punctuation, words, sentences, and the document;
 - finding words that occur only in the first sentence;
@@ -77,6 +80,7 @@ The test suite covers:
 - preserved sentence terminators;
 - decimals and common abbreviations;
 - last sentence without a terminator;
+- numbers, hyphenated words, and closing quotes;
 - the main query;
 - case-insensitive matching;
 - duplicates in the first sentence;
@@ -85,6 +89,6 @@ The test suite covers:
 
 ## Next steps
 
-1. Decide how to treat hyphenated words and numbers.
-2. Handle quotes and parentheses around sentence boundaries.
-3. Run the program on the real textbook file.
+1. Run the program on the real textbook file.
+2. Add a mode that prints all candidate words, not just the first one.
+3. Add more abbreviation/quote edge cases if the real text needs them.
