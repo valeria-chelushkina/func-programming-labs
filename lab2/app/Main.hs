@@ -16,6 +16,15 @@ import Integration
 data Mode = ModeSeq | ModePar | ModeBoth
   deriving (Eq, Show)
 
+data Options = Options
+  { optFunction :: NamedFunction
+  , optMode     :: Mode
+  , optQuiet    :: Bool
+  , optA        :: Double
+  , optB        :: Double
+  , optEps      :: Double
+  }
+
 main :: IO ()
 main = do
   args <- getArgs
@@ -26,51 +35,69 @@ main = do
         putStrLn ("error: " <> err)
         putStrLn ""
         putStrLn usage
-      Right (fn, mode, a, b, eps) ->
-        case validate a b eps of
+      Right opts ->
+        case validate (optA opts) (optB opts) (optEps opts) of
           Left err -> do
             putStrLn ("error: " <> err)
             putStrLn ""
             putStrLn usage
           Right () -> do
-            caps <- getNumCapabilities
-            let (lo, hi, sign) = normalizeBounds a b
-            putStrLn ("function     = " <> fnName fn <> "  (" <> fnDescription fn <> ")")
-            putStrLn ("interval     = [" <> show lo <> ", " <> show hi <> "]")
-            putStrLn ("epsilon      = " <> show eps)
-            putStrLn ("capabilities = " <> show caps)
-            putStrLn ""
+            let (lo, hi, sign) = normalizeBounds (optA opts) (optB opts)
+            if optQuiet opts
+              then runQuiet opts lo hi sign
+              else runVerbose opts lo hi sign
 
-            let runSeq = do
-                  start <- getCurrentTime
-                  let r = signed sign (integrateSequential (fnValue fn) lo hi eps)
-                  _ <- evaluate (resultValue r)
-                  end <- getCurrentTime
-                  pure (r, elapsed start end)
-                runPar = do
-                  start <- getCurrentTime
-                  r0 <- integrateParallel (fnValue fn) lo hi eps
-                  let r = signed sign r0
-                  _ <- evaluate (resultValue r)
-                  end <- getCurrentTime
-                  pure (r, elapsed start end)
+-- | Print only the numeric result.
+runQuiet :: Options -> Double -> Double -> Double -> IO ()
+runQuiet opts lo hi sign = do
+  let fn = optFunction opts
+      eps = optEps opts
+  r <- case optMode opts of
+    ModeSeq -> pure (integrateSequential (fnValue fn) lo hi eps)
+    _       -> integrateParallel (fnValue fn) lo hi eps
+  putStrLn (show (resultValue (signed sign r)))
 
-            case mode of
-              ModeSeq -> do
-                (r, t) <- runSeq
-                printResult "Sequential (midpoint rule)" r t
-              ModePar -> do
-                (r, t) <- runPar
-                printResult "Parallel (midpoint rule)" r t
-              ModeBoth -> do
-                (r1, t1) <- runSeq
-                (r2, t2) <- runPar
-                printResult "Sequential (midpoint rule)" r1 t1
-                putStrLn ""
-                printResult "Parallel (midpoint rule)" r2 t2
-                putStrLn ""
-                putStrLn ("difference between methods = "
-                          <> show (abs (resultValue r1 - resultValue r2)))
+runVerbose :: Options -> Double -> Double -> Double -> IO ()
+runVerbose opts lo hi sign = do
+  caps <- getNumCapabilities
+  let fn = optFunction opts
+      eps = optEps opts
+  putStrLn ("function     = " <> fnName fn <> "  (" <> fnDescription fn <> ")")
+  putStrLn ("interval     = [" <> show lo <> ", " <> show hi <> "]")
+  putStrLn ("epsilon      = " <> show eps)
+  putStrLn ("capabilities = " <> show caps)
+  putStrLn ""
+
+  let runSeq = do
+        start <- getCurrentTime
+        let r = signed sign (integrateSequential (fnValue fn) lo hi eps)
+        _ <- evaluate (resultValue r)
+        end <- getCurrentTime
+        pure (r, elapsed start end)
+      runPar = do
+        start <- getCurrentTime
+        r0 <- integrateParallel (fnValue fn) lo hi eps
+        let r = signed sign r0
+        _ <- evaluate (resultValue r)
+        end <- getCurrentTime
+        pure (r, elapsed start end)
+
+  case optMode opts of
+    ModeSeq -> do
+      (r, t) <- runSeq
+      printResult "Sequential (midpoint rule)" r t
+    ModePar -> do
+      (r, t) <- runPar
+      printResult "Parallel (midpoint rule)" r t
+    ModeBoth -> do
+      (r1, t1) <- runSeq
+      (r2, t2) <- runPar
+      printResult "Sequential (midpoint rule)" r1 t1
+      putStrLn ""
+      printResult "Parallel (midpoint rule)" r2 t2
+      putStrLn ""
+      putStrLn ("difference between methods = "
+                <> show (abs (resultValue r1 - resultValue r2)))
 
 printResult :: String -> IntegrationResult -> Double -> IO ()
 printResult label r t = do
@@ -104,45 +131,49 @@ listFunctions = do
   putStrLn "Available functions:"
   mapM_ (\f -> putStrLn ("  " <> pad (fnName f) <> "  " <> fnDescription f)) functions
   putStrLn ""
-  putStrLn "usage: lab2 [--function NAME] [--mode seq|par|both] [A B EPSILON]"
+  putStrLn "usage: lab2 [--function NAME] [--mode seq|par|both] [--quiet] [A B EPSILON]"
   where
     pad s = s ++ replicate (max 0 (8 - length s)) ' '
 
 usage :: String
 usage = unlines
-  [ "usage: lab2 [--function NAME] [--mode seq|par|both] [A B EPSILON]"
+  [ "usage: lab2 [--function NAME] [--mode seq|par|both] [--quiet] [A B EPSILON]"
   , "       lab2 --list-functions"
   , ""
   , "default: --function inv --mode both, A = 0, B = 1, EPSILON = 1e-6"
-  , "example: lab2 --function sin --mode par 0 3.141592653589793 1e-8"
+  , "--quiet prints only the numeric result (parallel unless --mode seq)"
+  , "example: lab2 --quiet --function sin 0 3.141592653589793 1e-8"
   ]
 
-parseArgs :: [String] -> Either String (NamedFunction, Mode, Double, Double, Double)
-parseArgs = go defaultFunction ModeBoth
+parseArgs :: [String] -> Either String Options
+parseArgs = go defaultFunction ModeBoth False
   where
-    go fn mode [] = Right (fn, mode, 0, 1, 1e-6)
+    go fn mode quiet [] = Right (Options fn mode quiet 0 1 1e-6)
 
-    go _ mode ("--function" : name : rest) =
+    go fn mode _ ("--quiet" : rest) = go fn mode True rest
+    go fn mode _ ("-q" : rest)      = go fn mode True rest
+
+    go _ mode quiet ("--function" : name : rest) =
       case findFunction name of
         Nothing -> Left ("unknown function: " <> name <> " (try --list-functions)")
-        Just f  -> go f mode rest
+        Just f  -> go f mode quiet rest
 
-    go _ _ ["--function"] = Left "--function needs a name"
+    go _ _ _ ["--function"] = Left "--function needs a name"
 
-    go fn _ ("--mode" : name : rest) =
+    go fn _ quiet ("--mode" : name : rest) =
       case parseMode name of
         Nothing -> Left ("unknown mode: " <> name <> " (seq, par, both)")
-        Just m  -> go fn m rest
+        Just m  -> go fn m quiet rest
 
-    go _ _ ["--mode"] = Left "--mode needs a value"
+    go _ _ _ ["--mode"] = Left "--mode needs a value"
 
-    go fn mode [a, b, eps] = do
+    go fn mode quiet [a, b, eps] = do
       a'   <- readDouble a
       b'   <- readDouble b
       eps' <- readDouble eps
-      pure (fn, mode, a', b', eps')
+      pure (Options fn mode quiet a' b' eps')
 
-    go _ _ _ = Left "expected A B EPSILON after the options"
+    go _ _ _ _ = Left "expected A B EPSILON after the options"
 
 parseMode :: String -> Maybe Mode
 parseMode "seq"        = Just ModeSeq

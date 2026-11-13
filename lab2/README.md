@@ -52,12 +52,28 @@ cabal run lab2 -- --mode par --function inv 0 1 1e-11
 CLI:
 
 ```
-lab2 [--function NAME] [--mode seq|par|both] [A B EPSILON]
+lab2 [--function NAME] [--mode seq|par|both] [--quiet] [A B EPSILON]
 lab2 --list-functions
 ```
 
 Defaults: `--function inv`, `--mode both`, `A = 0`, `B = 1`,
 `EPSILON = 1e-6`.
+
+## Quiet output
+
+`--quiet` (or `-q`) prints only the numeric result, with no headers, timing,
+or diagnostics:
+
+```powershell
+cabal run lab2 -- --quiet --function x2 0 1 1e-8
+# 0.3333333333333333
+
+cabal run lab2 -- -q --function sin 0 3.141592653589793 1e-8
+# 2.000000000000005
+```
+
+With `--mode seq` it prints the sequential result; otherwise it prints the
+parallel result (also when `--mode both` is used).
 
 ## What the program does
 
