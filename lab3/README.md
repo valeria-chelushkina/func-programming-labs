@@ -42,6 +42,20 @@ Use a specific file:
 cabal run lab3 -- path\to\textbook.txt
 ```
 
+Print all matching words instead of the first one:
+
+```powershell
+cabal run lab3 -- --all
+```
+
+```
+file      = data/sample.txt
+sentences = 3
+words[1]  = 5
+words     = 13
+result    = Функціональне, використовує, чисті, функції
+```
+
 Current output:
 
 ```
@@ -90,5 +104,5 @@ The test suite covers:
 ## Next steps
 
 1. Run the program on the real textbook file.
-2. Add a mode that prints all candidate words, not just the first one.
-3. Add more abbreviation/quote edge cases if the real text needs them.
+2. Add more abbreviation/quote edge cases if the real text needs them.
+3. Optionally print one candidate per line in `--all` mode.
