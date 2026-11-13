@@ -3,37 +3,36 @@ module Main where
 import System.Environment (getArgs)
 import Text.Read (readMaybe)
 
+import Integrands
 import Integration
-
--- | Demo integrand. Replace it with the function required by your variant.
--- For [0, 1] this integrates to pi.
-f :: Double -> Double
-f x = 4 / (1 + x * x)
 
 main :: IO ()
 main = do
   args <- getArgs
-  case parseArgs args of
-    Left err -> do
-      putStrLn ("error: " <> err)
-      putStrLn usage
-    Right (a, b, eps) -> do
-      putStrLn ("f(x) = 4 / (1 + x^2), interval [" <> show a <> ", " <> show b <> "]")
-      putStrLn ("epsilon = " <> show eps)
-      putStrLn ""
+  if "--list-functions" `elem` args
+    then listFunctions
+    else case parseArgs args of
+      Left err -> do
+        putStrLn ("error: " <> err)
+        putStrLn ""
+        putStrLn usage
+      Right (fn, a, b, eps) -> do
+        putStrLn ("function  = " <> fnName fn <> "  (" <> fnDescription fn <> ")")
+        putStrLn ("interval  = [" <> show a <> ", " <> show b <> "]")
+        putStrLn ("epsilon   = " <> show eps)
+        putStrLn ""
 
-      let seqResult = integrateSequential f a b eps
-      parResult <- integrateParallel f a b eps
+        let seqResult = integrateSequential (fnValue fn) a b eps
+        parResult <- integrateParallel (fnValue fn) a b eps
 
-      putStrLn "Sequential (midpoint rule):"
-      printResult seqResult
-      putStrLn ""
-      putStrLn "Parallel (midpoint rule, 8 chunks):"
-      printResult parResult
-      putStrLn ""
-      putStrLn ("difference between methods = "
-                <> show (abs (resultValue seqResult - resultValue parResult)))
-      putStrLn ("reference pi (for [0,1])   = " <> show (pi :: Double))
+        putStrLn "Sequential (midpoint rule):"
+        printResult seqResult
+        putStrLn ""
+        putStrLn "Parallel (midpoint rule, 8 chunks):"
+        printResult parResult
+        putStrLn ""
+        putStrLn ("difference between methods = "
+                  <> show (abs (resultValue seqResult - resultValue parResult)))
 
 printResult :: IntegrationResult -> IO ()
 printResult r = do
@@ -41,14 +40,43 @@ printResult r = do
   putStrLn ("  intervals  = " <> show (resultIntervals r))
   putStrLn ("  error est. = " <> show (resultError r))
 
-usage :: String
-usage = "usage: lab2 [A B EPSILON]   (default: 0 1 1e-6)"
+listFunctions :: IO ()
+listFunctions = do
+  putStrLn "Available functions:"
+  mapM_ (\f -> putStrLn ("  " <> pad (fnName f) <> "  " <> fnDescription f)) functions
+  putStrLn ""
+  putStrLn "usage: lab2 [--function NAME] [A B EPSILON]"
+  where
+    pad s = s ++ replicate (max 0 (8 - length s)) ' '
 
-parseArgs :: [String] -> Either String (Double, Double, Double)
-parseArgs [] = Right (0, 1, 1e-6)
-parseArgs [a, b, eps] =
+usage :: String
+usage = unlines
+  [ "usage: lab2 [--function NAME] [A B EPSILON]"
+  , "       lab2 --list-functions"
+  , ""
+  , "default: --function inv, A = 0, B = 1, EPSILON = 1e-6"
+  , "example: lab2 --function sin 0 3.141592653589793 1e-8"
+  ]
+
+parseArgs :: [String] -> Either String (NamedFunction, Double, Double, Double)
+parseArgs args = do
+  (mfn, rest) <- extractFunction args
+  (a, b, eps) <- parseBounds rest
+  pure (maybe defaultFunction id mfn, a, b, eps)
+
+extractFunction :: [String] -> Either String (Maybe NamedFunction, [String])
+extractFunction ("--function" : name : rest) =
+  case findFunction name of
+    Nothing -> Left ("unknown function: " <> name <> " (try --list-functions)")
+    Just f  -> Right (Just f, rest)
+extractFunction ["--function"] = Left "--function needs a name"
+extractFunction args = Right (Nothing, args)
+
+parseBounds :: [String] -> Either String (Double, Double, Double)
+parseBounds [] = Right (0, 1, 1e-6)
+parseBounds [a, b, eps] =
   (,,) <$> readDouble a <*> readDouble b <*> readDouble eps
-parseArgs _ = Left "expected 0 or 3 arguments"
+parseBounds _ = Left "expected A B EPSILON after the function name"
 
 readDouble :: String -> Either String Double
 readDouble s =
