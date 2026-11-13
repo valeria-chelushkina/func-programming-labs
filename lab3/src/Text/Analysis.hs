@@ -1,19 +1,45 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Text.Analysis
   ( findWordOnlyInFirst
+  , findWordsOnlyInFirst
+  , wordKey
   ) where
 
 import Prelude hiding (Word)
-import Text.Types
 
--- | Find a word that occurs in the first sentence and in no other sentence.
---
--- TODO: implement the actual comparison. The intended approach is:
---
---   1. take the words of the first sentence;
---   2. collect the words of every other sentence;
---   3. return the first word from step 1 that is absent from step 2.
---
--- Decide whether comparison should be case-sensitive; for a textbook,
--- case-insensitive matching is usually preferable.
+import Data.Maybe (listToMaybe)
+import Data.Set (Set)
+import qualified Data.Set as Set
+import Data.Text (Text)
+import qualified Data.Text as T
+
+import Text.Types
 findWordOnlyInFirst :: Document -> Maybe Word
-findWordOnlyInFirst _ = Nothing
+findWordOnlyInFirst = listToMaybe . findWordsOnlyInFirst
+
+findWordsOnlyInFirst :: Document -> [Word]
+findWordsOnlyInFirst (Document []) = []
+findWordsOnlyInFirst (Document (firstSentence : otherSentences)) =
+  filter isOnlyInFirst (dedupeOn wordKey (sentenceWords firstSentence))
+  where
+    otherKeys :: Set Text
+    otherKeys = Set.fromList
+      [ wordKey w
+      | s <- otherSentences
+      , w <- sentenceWords s
+      ]
+
+    isOnlyInFirst :: Word -> Bool
+    isOnlyInFirst w = not (Set.member (wordKey w) otherKeys)
+
+wordKey :: Word -> Text
+wordKey = T.toCaseFold . unWord
+
+dedupeOn :: Ord k => (a -> k) -> [a] -> [a]
+dedupeOn key = go Set.empty
+  where
+    go _ [] = []
+    go seen (x : xs)
+      | Set.member (key x) seen = go seen xs
+      | otherwise               = x : go (Set.insert (key x) seen) xs

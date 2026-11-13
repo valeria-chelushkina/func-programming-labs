@@ -10,8 +10,8 @@ The assignment query:
 
 All text formation normalizes tabs and repeated spaces to a single space.
 
-**Status:** project scaffold. File reading, whitespace normalization, sentence
-and word tokenization are implemented; the final query is a TODO.
+**Status:** complete — file reading, whitespace normalization, sentence/word
+tokenization, the final query, and tests are implemented.
 
 ## Structure
 
@@ -23,7 +23,8 @@ lab3/
 ├── src/Text/Types.hs        Symbol, Punctuation, Word, Sentence, Document
 ├── src/Text/Normalize.hs    tabs/spaces -> one space
 ├── src/Text/Tokenize.hs     text -> sentences -> words
-├── src/Text/Analysis.hs     TODO: findWordOnlyInFirst
+├── src/Text/Analysis.hs     find word(s) only in the first sentence
+├── test/Check.hs            normalization/tokenization/query tests
 └── data/sample.txt          small demo text
 ```
 
@@ -48,7 +49,7 @@ file      = data/sample.txt
 sentences = 3
 words[1]  = 5
 words     = 13
-result    = TODO: analysis is not implemented yet
+result    = Функціональне
 ```
 
 ## What is implemented
@@ -57,11 +58,30 @@ result    = TODO: analysis is not implemented yet
 - normalizing all whitespace runs (including tabs and newlines) to one space;
 - splitting into sentences on `.`, `!`, `?`;
 - splitting sentences into words and stripping surrounding punctuation;
-- domain types for symbols, punctuation, words, sentences, and the document.
+- domain types for symbols, punctuation, words, sentences, and the document;
+- finding words that occur only in the first sentence;
+- case-insensitive comparison and duplicate removal;
+- tests for normalization, tokenization, punctuation, and the query.
+
+## Tests
+
+```powershell
+cabal test
+```
+
+The test suite covers:
+
+- tabs/spaces normalization;
+- sentence splitting;
+- the main query;
+- case-insensitive matching;
+- duplicates in the first sentence;
+- punctuation stripping;
+- single-sentence and empty documents.
 
 ## Next steps
 
-1. Implement `findWordOnlyInFirst` in `src/Text/Analysis.hs`.
-2. Decide whether word comparison is case-sensitive.
-3. Preserve the actual sentence terminator instead of always using `Period`.
-4. Add tests for normalization, tokenization, and the final query.
+1. Preserve the actual sentence terminator instead of always using `Period`.
+2. Handle abbreviations such as `т.д.` and `e.g.` without splitting them.
+3. Decide how to treat hyphenated words and numbers.
+4. Run the program on the real textbook file.

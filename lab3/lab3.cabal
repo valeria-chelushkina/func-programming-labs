@@ -14,5 +14,20 @@ executable lab3
   build-depends:    base >= 4.18 && < 5
                   , text
                   , bytestring
+                  , containers
+  default-language: Haskell2010
+  ghc-options:      -Wall
+
+test-suite lab3-tests
+  type:             exitcode-stdio-1.0
+  main-is:          Check.hs
+  hs-source-dirs:   test, src
+  other-modules:    Text.Types
+                  , Text.Normalize
+                  , Text.Tokenize
+                  , Text.Analysis
+  build-depends:    base >= 4.18 && < 5
+                  , text
+                  , containers
   default-language: Haskell2010
   ghc-options:      -Wall

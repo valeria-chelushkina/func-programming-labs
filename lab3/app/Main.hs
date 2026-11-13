@@ -27,7 +27,7 @@ main = do
   putStrLn ("file      = " ++ path)
   printSummary doc
   case findWordOnlyInFirst doc of
-    Nothing -> putStrLn "result    = TODO: analysis is not implemented yet"
+    Nothing -> putStrLn "result    = no such word"
     Just w  -> TIO.putStrLn ("result    = " <> unWord w)
 
 printSummary :: Document -> IO ()
