@@ -19,9 +19,10 @@ you can add your own in `src/Integrands.hs`.
 lab2/
 ├── lab2.cabal
 ├── cabal.project
-├── app/Main.hs          CLI: choose function, A, B, epsilon; print results
+├── app/Main.hs          CLI: function, bounds, epsilon, mode, timing
 ├── src/Integrands.hs    selectable functions
-└── src/Integration.hs   midpoint rule, sequential/parallel drivers
+├── src/Integration.hs   midpoint rule, Richardson control, parallel driver
+└── scripts/Check.hs     checks against known integrals
 ```
 
 ## Build and run
@@ -42,16 +43,51 @@ cabal run lab2
 cabal run lab2 -- --function x2 0 1 1e-9
 cabal run lab2 -- --function sin 0 3.141592653589793 1e-8
 cabal run lab2 -- --function gauss -2 2 1e-6
+
+# time each implementation separately
+cabal run lab2 -- --mode seq --function inv 0 1 1e-11
+cabal run lab2 -- --mode par --function inv 0 1 1e-11
 ```
 
-Default values: `--function inv`, `A = 0`, `B = 1`, `epsilon = 1e-6`.
+CLI:
 
-The program prints:
+```
+lab2 [--function NAME] [--mode seq|par|both] [A B EPSILON]
+lab2 --list-functions
+```
 
-- the chosen function, interval, and epsilon;
-- value, number of subintervals, and error estimate for the sequential run;
-- the same for the parallel run;
-- the difference between the two results.
+Defaults: `--function inv`, `--mode both`, `A = 0`, `B = 1`,
+`EPSILON = 1e-6`.
+
+## What the program does
+
+1. Validates `EPSILON > 0` and `A != B`.
+2. If `A > B`, swaps the bounds and negates the result.
+3. Doubles the number of midpoint-rule intervals until the Richardson error
+   estimate is at most `EPSILON`.
+4. Prints, for the selected mode(s):
+
+```
+value      = ...
+intervals  = ...
+error est. = ...
+time       = ... s
+```
+
+If the internal limit of `2^20` intervals is reached before the requested
+precision, the result is printed with a warning.
+
+### Error control
+
+For the composite midpoint rule, doubling the grid gives
+
+```text
+err   = |M(2n) - M(n)| / 3
+value = M(2n) + (M(2n) - M(n)) / 3
+```
+
+The returned value is the Richardson-extrapolated one, not the raw midpoint
+sum.
 
 ## Available functions
 
@@ -74,24 +110,38 @@ To add another function, append a `NamedFunction` to `functions` in
 NamedFunction "my" "my function" (\x -> x * sin x)
 ```
 
-Keep the integration interval inside the function's domain (`log` and `sqrt`
-need a positive lower bound).
+Keep the interval inside the function's domain (`log` and `sqrt` need a
+positive lower bound).
 
 ## How the parallel version works
 
-`midpointRuleParallel` splits the `[A, B]` interval into 8 chunks, evaluates
-each chunk's partial sum in a separate `async` worker with
-`mapConcurrently`, then adds the partial sums. The number of subintervals is
-doubled until the change between two successive approximations is at most
-`epsilon`.
+`midpointRuleParallel` asks `getNumCapabilities`, splits the interval into
+`min capabilities n` chunks, evaluates each chunk's partial sum in a separate
+`async` worker with `mapConcurrently`, and adds the partial sums.
 
-`-threaded` in `ghc-options` enables the multithreaded runtime; the default
-`-with-rtsopts=-N` uses all CPU cores.
+`-threaded` enables the multithreaded runtime; `-with-rtsopts=-N` uses all
+available capabilities. To compare, run with `+RTS -N1` and `+RTS -N4`.
+
+## Correctness checks
+
+```powershell
+cabal exec -- runghc -isrc scripts\Check.hs
+```
+
+The script verifies sequential and parallel results against known integrals:
+
+| Integral | Exact value |
+|---|---|
+| ∫₀¹ x² dx | 1/3 |
+| ∫₀¹ 4/(1+x²) dx | π |
+| ∫₀^π sin x dx | 2 |
+| ∫₀¹ eˣ dx | e − 1 |
+| ∫₀¹ (x³ − 2x + 1) dx | 1/4 |
 
 ## Next steps
 
-- implement the exact quadrature rule required by the lab (midpoint, trapezoid,
-  Simpson) if it is prescribed;
-- improve the error estimate / stopping criterion;
-- choose the chunk count from `getNumCapabilities`;
-- compare sequential and parallel timings with `+RTS -N1` vs `+RTS -N4`.
+- implement a different quadrature rule if the lab prescribes one
+  (trapezoid / Simpson);
+- reuse evaluations between refinements instead of recomputing the grid;
+- compare sequential and parallel timings with `+RTS -N1 -s` vs `+RTS -N4 -s`;
+- add a short report with the timing table and speedup.
