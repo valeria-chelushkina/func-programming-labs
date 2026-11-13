@@ -8,6 +8,7 @@ module Service.Resource
   , getResourceDetails
   , listResourceDetails
   , searchResources
+  , searchResourceDetails
   ) where
 
 import Control.Exception (SomeException, displayException, try)
@@ -71,6 +72,11 @@ searchResources :: MySQLConn -> ResourceFilter -> IO [Resource]
 searchResources conn f =
   let f' = f { rfText = T.strip (rfText f) }
    in findByFilter conn f'
+
+searchResourceDetails :: MySQLConn -> ResourceFilter -> IO [ResourceDetails]
+searchResourceDetails conn f = do
+  rs <- searchResources conn f
+  mapM (detailsFor conn) rs
 
 detailsFor :: MySQLConn -> Resource -> IO ResourceDetails
 detailsFor conn r = do

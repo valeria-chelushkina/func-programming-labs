@@ -1,10 +1,10 @@
 # dept-resources
 
 Skeleton for the course project "Information resources of the department"
-(Functional Programming). Haskell + MySQL.
+(Functional Programming). Haskell + MySQL + a lilac web dashboard.
 
-**Status:** backend complete — resource/author/user CRUD, search, dictionary
-listings, usage statistics. The console UI is the remaining piece.
+**Status:** complete web admin dashboard — resource/author/user CRUD, search,
+dictionary listings, usage statistics.
 
 ## Requirements
 
@@ -54,7 +54,7 @@ Get-Content .\sql\seed.sql -Raw -Encoding UTF8 |
 
 **Warning:** this deletes existing rows in all application tables.
 
-## 4. Build and run
+## 4. Run the web dashboard
 
 ```powershell
 cabal update
@@ -62,23 +62,25 @@ cabal build
 cabal run
 ```
 
-Expected output:
+Then open **http://localhost:8080** in a browser. Stop the server with `Ctrl+C`.
 
-```
-Connected to MySQL 8.4.x
-```
-
-If the database is not running, the program prints `Error: ...`
-instead of crashing.
+If the database is not running, the pages show an error instead of crashing.
 
 ## How to check that it works
 
-`cabal run` checks only the read path: it connects, prints the MySQL version,
-and lists the `resources` table.
+Start the server and open:
+
+- `/` — dashboard with counts and top resources;
+- `/resources` — search bar, kind/purpose filters, table;
+- `/resources/1` — details, authors, URLs, usage, delete;
+- `/resources/new` — create form;
+- `/resources/1/edit` — pre-filled edit form;
+- `/authors`, `/users` — lists and create/edit forms;
+- `/stats` — per-resource and per-user usage.
 
 Full CRUD for resources (create with authors/URLs, read details, update,
 delete, rollback), author CRUD, dictionary listings, search, user
-management, and usage statistics are covered by manual smoke tests:
+management, and usage statistics are also covered by manual smoke tests:
 
 ```powershell
 cabal exec -- runghc -isrc scripts\SmokeCrud.hs
@@ -97,7 +99,19 @@ The scripts create temporary rows and remove them, so they do not touch your dat
 ```
 dept-resources.cabal            build configuration
 cabal.project
-app/Main.hs                     entry point + read-only smoke test
+app/Main.hs                     entry point: starts the web server
+src/Web/App.hs                  routes + handlers
+src/Web/Layout.hs               page shell + lilac CSS
+src/Web/Components.hs           cards, panels, alerts, form controls
+src/Web/Forms.hs                form state types (resource/author/user)
+src/Web/Pages/Dashboard.hs      dashboard page
+src/Web/Pages/Resources.hs      resource list + search
+src/Web/Pages/ResourceDetails.hs  one resource + usage
+src/Web/Pages/ResourceForm.hs   create/edit resource form
+src/Web/Pages/Authors.hs        author list + form
+src/Web/Pages/Users.hs          user list + form
+src/Web/Pages/Stats.hs          statistics page
+src/Web/Pages/NotFound.hs       404 content
 src/Model/Resource.hs           Resource, ResourceDraft, ResourceDetails
 src/Model/Author.hs             Author + AuthorDraft
 src/Model/ResourceUrl.hs        ResourceUrl + input draft
@@ -120,7 +134,6 @@ src/Service/User.hs             user create/edit/list use-cases
 src/Service/Stats.hs            record usage + reports
 src/Db/Config.hs                DbConfig + defaultConfig
 src/Db/Connection.hs            withConnection / withTransaction
-src/Ui/Render.hs                console formatting
 scripts/SmokeCrud.hs            manual resource CRUD check
 scripts/SmokeAuthor.hs          manual author CRUD check
 scripts/SmokeLookup.hs          manual dictionary check
@@ -131,11 +144,12 @@ sql/schema.sql                  9 tables
 sql/seed.sql                    demo data (resets the tables)
 ```
 
-Planned additions (same pattern):
+Planned additions (optional):
 
 ```
-src/Ui/Menu.hs                  interactive console menu
-sql/seed.sql                    demo data for dictionaries/users/resources
+authentication / admin login
+pagination and flash messages
+config from environment variables
 ```
 
 ## Connection settings
@@ -150,8 +164,9 @@ sql/seed.sql                    demo data for dictionaries/users/resources
 
 Change them there if your MySQL setup differs.
 
-## Next steps (not implemented)
+## Next steps (optional)
 
-1. Console UI in `app/Main.hs` + `src/Ui/Menu.hs`.
-2. Polish: show kind/purpose/condition **names** in list/details, config from env vars.
+1. Admin authentication and roles.
+2. Pagination and success/error flash messages.
+3. Config from environment variables instead of hardcoded root/root.
 

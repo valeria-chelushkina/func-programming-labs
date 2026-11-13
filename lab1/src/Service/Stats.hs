@@ -6,6 +6,7 @@ module Service.Stats
   , resourceUsage
   , topResources
   , userUsageCount
+  , totalUsage
   ) where
 
 import Control.Exception (SomeException, displayException, try)
@@ -46,3 +47,6 @@ topResources conn n = Repo.topResources conn (max 1 (min 100 n))
 
 userUsageCount :: MySQLConn -> Word32 -> IO Int
 userUsageCount = Repo.userUsageCount
+
+totalUsage :: MySQLConn -> IO Int
+totalUsage = Repo.totalUsageCount

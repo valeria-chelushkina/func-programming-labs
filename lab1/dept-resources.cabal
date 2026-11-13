@@ -30,7 +30,18 @@ executable dept-resources
                   , Service.Lookup
                   , Service.User
                   , Service.Stats
-                  , Ui.Render
+                  , Web.App
+                  , Web.Layout
+                  , Web.Components
+                  , Web.Forms
+                  , Web.Pages.Dashboard
+                  , Web.Pages.Resources
+                  , Web.Pages.ResourceDetails
+                  , Web.Pages.ResourceForm
+                  , Web.Pages.Authors
+                  , Web.Pages.Users
+                  , Web.Pages.Stats
+                  , Web.Pages.NotFound
   build-depends:    base >= 4.18 && < 5
                   , mysql-haskell >= 1.3 && < 1.4
                   , io-streams
@@ -38,5 +49,9 @@ executable dept-resources
                   , bytestring
                   , time
                   , containers
+                  , scotty >= 0.22 && < 0.31
+                  , lucid >= 2.11 && < 2.12
+                  , warp
+                  , streaming-commons
   default-language: Haskell2010
-  ghc-options:      -Wall
+  ghc-options:      -Wall -threaded

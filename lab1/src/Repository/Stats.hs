@@ -5,6 +5,7 @@ module Repository.Stats
   , resourceUsage
   , topResources
   , userUsageCount
+  , totalUsageCount
   ) where
 
 import Control.Monad (void)
@@ -78,6 +79,14 @@ userUsageCount conn uid = do
   (_, rows) <- query conn
     "SELECT COUNT(*) FROM usage_stats WHERE user_id = ?"
     [MySQLInt32U uid]
+  xs <- Streams.toList rows
+  case xs of
+    [[v]] -> either (ioError . userError) pure (intValue v)
+    _     -> ioError (userError "usage_stats: expected exactly one count")
+
+totalUsageCount :: MySQLConn -> IO Int
+totalUsageCount conn = do
+  (_, rows) <- query_ conn "SELECT COUNT(*) FROM usage_stats"
   xs <- Streams.toList rows
   case xs of
     [[v]] -> either (ioError . userError) pure (intValue v)
