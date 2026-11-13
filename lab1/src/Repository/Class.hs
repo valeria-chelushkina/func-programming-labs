@@ -9,7 +9,9 @@ module Repository.Class
   , maybeDay
   , maybeText
   , boolValue
+  , intValue
   , selectRows
+  , selectAllSql
   ) where
 
 import qualified Data.ByteString.Lazy as BL
@@ -75,6 +77,18 @@ boolValue (MySQLInt32U n) = Right (n /= 0)
 boolValue (MySQLInt64 n)  = Right (n /= 0)
 boolValue (MySQLInt64U n) = Right (n /= 0)
 boolValue v               = Left ("expected BOOLEAN, got " <> show v)
+
+-- | Helper for COUNT/SUM results and other integer columns.
+intValue :: MySQLValue -> Either String Int
+intValue (MySQLInt8 n)   = Right (fromIntegral n)
+intValue (MySQLInt8U n)  = Right (fromIntegral n)
+intValue (MySQLInt16 n)  = Right (fromIntegral n)
+intValue (MySQLInt16U n) = Right (fromIntegral n)
+intValue (MySQLInt32 n)  = Right (fromIntegral n)
+intValue (MySQLInt32U n) = Right (fromIntegral n)
+intValue (MySQLInt64 n)  = Right (fromIntegral n)
+intValue (MySQLInt64U n) = Right (fromIntegral n)
+intValue v               = Left ("expected integer, got " <> show v)
 
 selectRows :: FromRow a => MySQLConn -> Text -> [MySQLValue] -> IO [a]
 selectRows conn sql params = do

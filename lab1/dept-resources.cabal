@@ -12,6 +12,9 @@ executable dept-resources
                   , Model.Author
                   , Model.ResourceUrl
                   , Model.Lookup
+                  , Model.Filters
+                  , Model.User
+                  , Model.Stats
                   , Db.Config
                   , Db.Connection
                   , Repository.Class
@@ -19,9 +22,14 @@ executable dept-resources
                   , Repository.Author
                   , Repository.ResourceUrl
                   , Repository.Lookup
+                  , Repository.Search
+                  , Repository.User
+                  , Repository.Stats
                   , Service.Resource
                   , Service.Author
                   , Service.Lookup
+                  , Service.User
+                  , Service.Stats
                   , Ui.Render
   build-depends:    base >= 4.18 && < 5
                   , mysql-haskell >= 1.3 && < 1.4

@@ -63,14 +63,16 @@ instead of crashing.
 and lists the `resources` table.
 
 Full CRUD for resources (create with authors/URLs, read details, update,
-delete, rollback), author CRUD, dictionary listings, and search are covered
-by manual smoke tests:
+delete, rollback), author CRUD, dictionary listings, search, user
+management, and usage statistics are covered by manual smoke tests:
 
 ```powershell
 cabal exec -- runghc -isrc scripts\SmokeCrud.hs
 cabal exec -- runghc -isrc scripts\SmokeAuthor.hs
 cabal exec -- runghc -isrc scripts\SmokeLookup.hs
 cabal exec -- runghc -isrc scripts\SmokeSearch.hs
+cabal exec -- runghc -isrc scripts\SmokeUser.hs
+cabal exec -- runghc -isrc scripts\SmokeStats.hs
 ```
 
 Expected: a sequence of `[PASS]` lines ending with `ALL CHECKS PASSED`.
@@ -87,15 +89,21 @@ src/Model/Author.hs             Author + AuthorDraft
 src/Model/ResourceUrl.hs        ResourceUrl + input draft
 src/Model/Lookup.hs             Kind, Purpose, UsageCondition
 src/Model/Filters.hs            ResourceFilter
+src/Model/User.hs               User, UserDraft, Role
+src/Model/Stats.hs              UsageRecord + report types
 src/Repository/Class.hs         FromRow + Repository classes
 src/Repository/Resource.hs      resource row + authors/URLs, transactional
 src/Repository/Author.hs        authors of a resource + create/update
 src/Repository/ResourceUrl.hs   URLs of one resource
 src/Repository/Lookup.hs        dictionary instances
 src/Repository/Search.hs        SQL search by text/kind/purpose/author
+src/Repository/User.hs          users + create/update
+src/Repository/Stats.hs         usage inserts + aggregates
 src/Service/Resource.hs         full resource CRUD use-cases
 src/Service/Author.hs           author create/edit/list use-cases
 src/Service/Lookup.hs           list/get dictionaries
+src/Service/User.hs             user create/edit/list use-cases
+src/Service/Stats.hs            record usage + reports
 src/Db/Config.hs                DbConfig + defaultConfig
 src/Db/Connection.hs            withConnection / withTransaction
 src/Ui/Render.hs                console formatting
@@ -103,15 +111,16 @@ scripts/SmokeCrud.hs            manual resource CRUD check
 scripts/SmokeAuthor.hs          manual author CRUD check
 scripts/SmokeLookup.hs          manual dictionary check
 scripts/SmokeSearch.hs          manual search check
+scripts/SmokeUser.hs            manual user check
+scripts/SmokeStats.hs           manual usage statistics check
 sql/schema.sql                  9 tables
 ```
 
 Planned additions (same pattern):
 
 ```
-src/Model/User.hs               src/Repository/User.hs
-src/Model/UsageStat.hs          src/Service/Stats.hs
-src/Ui/Menu.hs
+src/Ui/Menu.hs                  interactive console menu
+sql/seed.sql                    demo data for dictionaries/users/resources
 ```
 
 ## Connection settings
@@ -128,7 +137,7 @@ Change them there if your MySQL setup differs.
 
 ## Next steps (not implemented)
 
-1. `User` and `UsageStat` domain types + repositories (needed for statistics).
-2. Statistics queries (`Service/Stats.hs`).
-3. Console UI in `app/Main.hs` + `src/Ui/Menu.hs`.
+1. Console UI in `app/Main.hs` + `src/Ui/Menu.hs`.
+2. `sql/seed.sql` with demo data (dictionaries, authors, users, resources, usage).
+3. Polish: show kind/purpose/condition **names** in list/details, config from env vars.
 
