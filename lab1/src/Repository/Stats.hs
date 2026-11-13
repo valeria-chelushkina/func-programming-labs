@@ -27,18 +27,16 @@ import Repository.Class (intValue)
 insertUsage :: MySQLConn -> UsageRecord -> IO ()
 insertUsage conn u =
   void $ execute conn
-    "INSERT INTO usage_stats (user_id, resource_id, action, minutes) VALUES (?, ?, ?, ?)"
+    "INSERT INTO usage_stats (user_id, resource_id, action) VALUES (?, ?, ?)"
     [ MySQLInt32U (usageUserId u)
     , MySQLInt32U (usageResourceId u)
     , MySQLText (actionToText (usageAction u))
-    , MySQLInt32 (fromIntegral (max 0 (usageMinutes u)))
     ]
 
 resourceUsage :: MySQLConn -> Word32 -> IO ResourceUsage
 resourceUsage conn rid = do
   (_, rows) <- query conn
-    "SELECT COUNT(*), COUNT(DISTINCT user_id), \
-    \CAST(COALESCE(SUM(minutes), 0) AS SIGNED), MAX(used_at) \
+    "SELECT COUNT(*), COUNT(DISTINCT user_id), MAX(used_at) \
     \FROM usage_stats WHERE resource_id = ?"
     [MySQLInt32U rid]
   xs <- Streams.toList rows
@@ -47,11 +45,10 @@ resourceUsage conn rid = do
     _     -> ioError (userError "usage_stats: expected exactly one row")
 
 decodeUsage :: [MySQLValue] -> Either String ResourceUsage
-decodeUsage [uses, users, minutes, lastUsed] =
+decodeUsage [uses, users, lastUsed] =
   ResourceUsage
     <$> intValue uses
     <*> intValue users
-    <*> intValue minutes
     <*> maybeLocalTime lastUsed
 decodeUsage row =
   Left ("usage_stats: unexpected row shape: " <> show row)

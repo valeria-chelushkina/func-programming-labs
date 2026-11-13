@@ -84,7 +84,6 @@ CREATE TABLE usage_stats (
   resource_id INT UNSIGNED NOT NULL,
   used_at     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   action      ENUM('view','download','open') NOT NULL DEFAULT 'view',
-  minutes     INT UNSIGNED NOT NULL DEFAULT 0,
   CONSTRAINT fk_stats_user     FOREIGN KEY (user_id)     REFERENCES users (id),
   CONSTRAINT fk_stats_resource FOREIGN KEY (resource_id) REFERENCES resources (id) ON DELETE CASCADE,
   KEY idx_stats_resource_time (resource_id, used_at),

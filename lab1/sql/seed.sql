@@ -127,40 +127,40 @@ INSERT INTO resource_urls (resource_id, url, label, is_primary) VALUES
 
 -- Usage statistics ---------------------------------------------------------
 
-INSERT INTO usage_stats (user_id, resource_id, used_at, action, minutes) VALUES
-  (1, 1,  NOW() - INTERVAL 28 DAY, 'view',     40),
-  (2, 1,  NOW() - INTERVAL 27 DAY, 'view',     35),
-  (3, 1,  NOW() - INTERVAL 25 DAY, 'download', 50),
-  (1, 1,  NOW() - INTERVAL 20 DAY, 'download', 20),
-  (4, 1,  NOW() - INTERVAL 18 DAY, 'view',     15),
-  (2, 1,  NOW() - INTERVAL 14 DAY, 'view',     30),
-  (3, 1,  NOW() - INTERVAL 10 DAY, 'view',     25),
-  (1, 1,  NOW() - INTERVAL  3 DAY, 'view',     45),
+INSERT INTO usage_stats (user_id, resource_id, used_at, action) VALUES
+  (1, 1,  NOW() - INTERVAL 28 DAY, 'view'),
+  (2, 1,  NOW() - INTERVAL 27 DAY, 'view'),
+  (3, 1,  NOW() - INTERVAL 25 DAY, 'download'),
+  (1, 1,  NOW() - INTERVAL 20 DAY, 'download'),
+  (4, 1,  NOW() - INTERVAL 18 DAY, 'view'),
+  (2, 1,  NOW() - INTERVAL 14 DAY, 'view'),
+  (3, 1,  NOW() - INTERVAL 10 DAY, 'view'),
+  (1, 1,  NOW() - INTERVAL  3 DAY, 'view'),
 
-  (1, 2,  NOW() - INTERVAL 26 DAY, 'view',     60),
-  (2, 2,  NOW() - INTERVAL 22 DAY, 'download', 40),
-  (3, 2,  NOW() - INTERVAL 16 DAY, 'view',     55),
-  (1, 2,  NOW() - INTERVAL  8 DAY, 'view',     30),
-  (4, 2,  NOW() - INTERVAL  2 DAY, 'download', 25),
+  (1, 2,  NOW() - INTERVAL 26 DAY, 'view'),
+  (2, 2,  NOW() - INTERVAL 22 DAY, 'download'),
+  (3, 2,  NOW() - INTERVAL 16 DAY, 'view'),
+  (1, 2,  NOW() - INTERVAL  8 DAY, 'view'),
+  (4, 2,  NOW() - INTERVAL  2 DAY, 'download'),
 
-  (1, 3,  NOW() - INTERVAL 24 DAY, 'view',     20),
-  (2, 3,  NOW() - INTERVAL 19 DAY, 'view',     15),
-  (3, 3,  NOW() - INTERVAL  9 DAY, 'download', 10),
-  (1, 3,  NOW() - INTERVAL  4 DAY, 'view',     18),
+  (1, 3,  NOW() - INTERVAL 24 DAY, 'view'),
+  (2, 3,  NOW() - INTERVAL 19 DAY, 'view'),
+  (3, 3,  NOW() - INTERVAL  9 DAY, 'download'),
+  (1, 3,  NOW() - INTERVAL  4 DAY, 'view'),
 
-  (1, 4,  NOW() - INTERVAL 23 DAY, 'view',     50),
-  (4, 4,  NOW() - INTERVAL 17 DAY, 'view',     45),
-  (2, 4,  NOW() - INTERVAL 11 DAY, 'view',     40),
-  (3, 4,  NOW() - INTERVAL  1 DAY, 'view',     35),
+  (1, 4,  NOW() - INTERVAL 23 DAY, 'view'),
+  (4, 4,  NOW() - INTERVAL 17 DAY, 'view'),
+  (2, 4,  NOW() - INTERVAL 11 DAY, 'view'),
+  (3, 4,  NOW() - INTERVAL  1 DAY, 'view'),
 
-  (2, 5,  NOW() - INTERVAL 21 DAY, 'view',     30),
-  (3, 5,  NOW() - INTERVAL 12 DAY, 'open',     20),
-  (1, 5,  NOW() - INTERVAL  5 DAY, 'view',     25),
+  (2, 5,  NOW() - INTERVAL 21 DAY, 'view'),
+  (3, 5,  NOW() - INTERVAL 12 DAY, 'open'),
+  (1, 5,  NOW() - INTERVAL  5 DAY, 'view'),
 
-  (3, 6,  NOW() - INTERVAL 15 DAY, 'download', 90),
-  (4, 6,  NOW() - INTERVAL  6 DAY, 'download', 120),
+  (3, 6,  NOW() - INTERVAL 15 DAY, 'download'),
+  (4, 6,  NOW() - INTERVAL  6 DAY, 'download'),
 
-  (1, 7,  NOW() - INTERVAL 13 DAY, 'view',     15),
-  (2, 8,  NOW() - INTERVAL  7 DAY, 'open',     30),
-  (1, 9,  NOW() - INTERVAL  2 DAY, 'view',     20),
-  (4, 10, NOW() - INTERVAL  1 DAY, 'view',     10);
+  (1, 7,  NOW() - INTERVAL 13 DAY, 'view'),
+  (2, 8,  NOW() - INTERVAL  7 DAY, 'open'),
+  (1, 9,  NOW() - INTERVAL  2 DAY, 'view'),
+  (4, 10, NOW() - INTERVAL  1 DAY, 'view');

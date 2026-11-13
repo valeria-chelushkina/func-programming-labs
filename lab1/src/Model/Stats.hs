@@ -32,14 +32,12 @@ data UsageRecord = UsageRecord
   { usageUserId     :: Word32
   , usageResourceId :: Word32
   , usageAction     :: UsageAction
-  , usageMinutes    :: Int
   } deriving (Show, Eq)
 
 data ResourceUsage = ResourceUsage
-  { ruUses         :: Int
-  , ruUniqueUsers  :: Int
-  , ruTotalMinutes :: Int
-  , ruLastUsed     :: Maybe LocalTime
+  { ruUses        :: Int
+  , ruUniqueUsers :: Int
+  , ruLastUsed    :: Maybe LocalTime
   } deriving (Show, Eq)
 
 data TopResource = TopResource

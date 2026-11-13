@@ -27,12 +27,10 @@ statsPage total rows userRows = do
           th_ "Resource"
           th_ [class_ "num"] "Uses"
           th_ [class_ "num"] "Users"
-          th_ [class_ "num"] "Minutes"
         tbody_ $ mapM_ (\(r, u) -> tr_ $ do
           td_ (toHtml (resName r))
           td_ [class_ "num"] (toHtml (show (ruUses u)))
-          td_ [class_ "num"] (toHtml (show (ruUniqueUsers u)))
-          td_ [class_ "num"] (toHtml (show (ruTotalMinutes u)))) rows
+          td_ [class_ "num"] (toHtml (show (ruUniqueUsers u)))) rows
     panel "Per user" $
       table_ [class_ "table"] $ do
         thead_ $ tr_ $ do

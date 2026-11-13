@@ -235,13 +235,13 @@ usageH :: MVar MySQLConn -> ActionM ()
 usageH var = do
   mid <- idParam
   ps  <- formParams
-  case (mid, readW32 (pget "userId" ps), actionFromText (pget "action" ps), readInt (pget "minutes" ps)) of
-    (Just rid, Just uid, Right act, Just mins) -> do
+  case (mid, readW32 (pget "userId" ps), actionFromText (pget "action" ps)) of
+    (Just rid, Just uid, Right act) -> do
       _ <- db var $ \conn ->
-        recordUsage conn (UsageRecord uid rid act mins)
+        recordUsage conn (UsageRecord uid rid act)
       redirectT ("/resources/" <> showId rid)
-    (Just rid, _, _, _) -> redirectT ("/resources/" <> showId rid)
-    _                   -> notFound
+    (Just rid, _, _) -> redirectT ("/resources/" <> showId rid)
+    _                -> notFound
 
 -- Authors ------------------------------------------------------------------
 
@@ -433,9 +433,6 @@ pgets k ps = [v | (k', v) <- ps, k' == k]
 
 readW32 :: Text -> Maybe Word32
 readW32 = readMaybe . T.unpack
-
-readInt :: Text -> Maybe Int
-readInt = readMaybe . T.unpack
 
 -- Forms --------------------------------------------------------------------
 

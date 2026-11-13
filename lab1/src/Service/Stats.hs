@@ -22,22 +22,17 @@ import Repository.Resource ()
 import Repository.User ()
 
 recordUsage :: MySQLConn -> UsageRecord -> IO (Either String ())
-recordUsage conn u
-  | usageMinutes u < 0 =
-      pure (Left "minutes must not be negative")
-  | usageMinutes u > 1440 =
-      pure (Left "minutes must be between 0 and 1440")
-  | otherwise = do
-      muser <- findById @User conn (usageUserId u)
-      mres  <- findById @Resource conn (usageResourceId u)
-      case (muser, mres) of
-        (Nothing, _) ->
-          pure (Left ("user " <> show (usageUserId u) <> " not found"))
-        (_, Nothing) ->
-          pure (Left ("resource " <> show (usageResourceId u) <> " not found"))
-        _ -> do
-          r <- try (Repo.insertUsage conn u) :: IO (Either SomeException ())
-          pure (either (Left . displayException) Right r)
+recordUsage conn u = do
+  muser <- findById @User conn (usageUserId u)
+  mres  <- findById @Resource conn (usageResourceId u)
+  case (muser, mres) of
+    (Nothing, _) ->
+      pure (Left ("user " <> show (usageUserId u) <> " not found"))
+    (_, Nothing) ->
+      pure (Left ("resource " <> show (usageResourceId u) <> " not found"))
+    _ -> do
+      r <- try (Repo.insertUsage conn u) :: IO (Either SomeException ())
+      pure (either (Left . displayException) Right r)
 
 resourceUsage :: MySQLConn -> Word32 -> IO ResourceUsage
 resourceUsage = Repo.resourceUsage

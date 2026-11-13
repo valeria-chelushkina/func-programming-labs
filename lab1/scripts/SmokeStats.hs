@@ -40,24 +40,21 @@ main = withConnection defaultConfig $ \conn ->
 checks :: MySQLConn -> Word32 -> Word32 -> Word32 -> IO ()
 checks conn u1 u2 rid = do
   TIO.putStrLn "1. record usage"
-  r1 <- recordUsage conn (usage rid u1 View 10)
-  check "record view 10 min" (isRight r1)
-  r2 <- recordUsage conn (usage rid u2 View 20)
-  check "record view 20 min" (isRight r2)
-  r3 <- recordUsage conn (usage rid u1 Download 5)
-  check "record download 5 min" (isRight r3)
+  r1 <- recordUsage conn (usage rid u1 View)
+  check "record view" (isRight r1)
+  r2 <- recordUsage conn (usage rid u2 View)
+  check "record second view" (isRight r2)
+  r3 <- recordUsage conn (usage rid u1 Download)
+  check "record download" (isRight r3)
 
   TIO.putStrLn "2. invalid records"
-  neg <- recordUsage conn (usage rid u1 Open (-1))
-  check "negative minutes rejected" (isLeft neg)
-  badUser <- recordUsage conn (usage rid 999999 Open 5)
+  badUser <- recordUsage conn (usage rid 999999 Open)
   check "unknown user rejected" (isLeft badUser)
 
   TIO.putStrLn "3. resource summary"
   ru <- resourceUsage conn rid
   check "uses = 3" (ruUses ru == 3)
   check "unique users = 2" (ruUniqueUsers ru == 2)
-  check "total minutes = 35" (ruTotalMinutes ru == 35)
   check "last used is set" (isJust (ruLastUsed ru))
 
   TIO.putStrLn "4. top resources"
@@ -71,12 +68,11 @@ checks conn u1 u2 rid = do
   check "user one has 2 records" (c1 == 2)
   check "user two has 1 record" (c2 == 1)
 
-usage :: Word32 -> Word32 -> UsageAction -> Int -> UsageRecord
-usage rid uid action minutes = UsageRecord
+usage :: Word32 -> Word32 -> UsageAction -> UsageRecord
+usage rid uid action = UsageRecord
   { usageUserId     = uid
   , usageResourceId = rid
   , usageAction     = action
-  , usageMinutes    = minutes
   }
 
 mustUser :: MySQLConn -> T.Text -> T.Text -> IO Word32

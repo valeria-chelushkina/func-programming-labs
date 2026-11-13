@@ -41,7 +41,6 @@ resourceDetailsPage rv usage users = do
   div_ [class_ "cards cards-4"] $ do
     card ("Uses", T.pack (show (ruUses usage)))
     card ("Unique users", T.pack (show (ruUniqueUsers usage)))
-    card ("Minutes", T.pack (show (ruTotalMinutes usage)))
     card ("Last used", maybe "—" formatDateTime (ruLastUsed usage))
   panel "Annotation" (p_ [class_ "prose"] (toHtml (resAnnotation r)))
   div_ [class_ "grid-2"] $ do
@@ -72,9 +71,6 @@ resourceDetailsPage rv usage users = do
               option_ [value_ "view"] "view"
               option_ [value_ "download"] "download"
               option_ [value_ "open"] "open"
-          label_ [class_ "field"] $ do
-            span_ "Minutes"
-            input_ [type_ "number", name_ "minutes", value_ "10", min_ "0", max_ "1440", class_ "input"]
           button_ [type_ "submit", class_ "btn btn-primary"] "Save usage"
   form_ [method_ "post", action_ ("/resources/" <> showId (resId r) <> "/delete")] $
     button_ [type_ "submit", class_ "btn btn-danger"] "Delete this resource"
