@@ -18,6 +18,10 @@ executable lab3
   default-language: Haskell2010
   ghc-options:      -Wall
 
+  if os(windows)
+    build-depends:  Win32
+    cpp-options:    -DWINDOWS
+
 test-suite lab3-tests
   type:             exitcode-stdio-1.0
   main-is:          Check.hs

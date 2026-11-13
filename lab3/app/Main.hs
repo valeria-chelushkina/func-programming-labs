@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Main where
@@ -7,7 +8,10 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import qualified Data.Text.IO as TIO
 import System.Environment (getArgs)
-import System.IO (hSetEncoding, stdout, utf8)
+import System.IO (hSetEncoding, stdin, stdout, utf8)
+#if defined(WINDOWS)
+import System.Win32.Console (setConsoleCP, setConsoleOutputCP)
+#endif
 
 import Text.Analysis (findWordOnlyInFirst, findWordsOnlyInFirst)
 import Text.Normalize (normalizeWhitespace)
@@ -16,7 +20,7 @@ import Text.Types
 
 main :: IO ()
 main = do
-  hSetEncoding stdout utf8
+  setupConsole
   args <- getArgs
   let allFlag = any isAllFlag args
       path = case filter (not . isAllFlag) args of
@@ -31,6 +35,16 @@ main = do
   if allFlag
     then printAllCandidates doc
     else printFirstCandidate doc
+
+-- | Use UTF-8 both in GHC and in the Windows console code page.
+setupConsole :: IO ()
+setupConsole = do
+  hSetEncoding stdout utf8
+  hSetEncoding stdin utf8
+#if defined(WINDOWS)
+  setConsoleCP 65001
+  setConsoleOutputCP 65001
+#endif
 
 isAllFlag :: String -> Bool
 isAllFlag s = s `elem` ["--all", "--all-candidates"]

@@ -36,6 +36,9 @@ cabal build
 cabal run lab3
 ```
 
+On Windows the program switches the console code page to UTF-8, so Ukrainian
+text is printed correctly without a manual `chcp 65001`.
+
 Use a specific file:
 
 ```powershell
