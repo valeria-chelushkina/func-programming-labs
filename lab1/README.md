@@ -62,16 +62,16 @@ instead of crashing.
 `cabal run` checks only the read path: it connects, prints the MySQL version,
 and lists the `resources` table.
 
-Full CRUD (create with authors/URLs, read details, update, delete, rollback)
-is covered by a manual smoke test:
+Full CRUD for resources (create with authors/URLs, read details, update,
+delete, rollback) and author CRUD are covered by manual smoke tests:
 
 ```powershell
 cabal exec -- runghc -isrc scripts\SmokeCrud.hs
+cabal exec -- runghc -isrc scripts\SmokeAuthor.hs
 ```
 
 Expected: a sequence of `[PASS]` lines ending with `ALL CHECKS PASSED`.
-The script creates temporary rows (ids `9001`–`9003`, `9101`–`9102`), then
-removes them, so it does not touch your data.
+The scripts create temporary rows and remove them, so they do not touch your data.
 
 ## Project layout
 
@@ -80,17 +80,19 @@ dept-resources.cabal            build configuration
 cabal.project
 app/Main.hs                     entry point + read-only smoke test
 src/Model/Resource.hs           Resource, ResourceDraft, ResourceDetails
-src/Model/Author.hs             Author
+src/Model/Author.hs             Author + AuthorDraft
 src/Model/ResourceUrl.hs        ResourceUrl + input draft
 src/Repository/Class.hs         FromRow + Repository classes
 src/Repository/Resource.hs      resource row + authors/URLs, transactional
-src/Repository/Author.hs        authors of one resource
+src/Repository/Author.hs        authors of a resource + create/update
 src/Repository/ResourceUrl.hs   URLs of one resource
 src/Service/Resource.hs         full resource CRUD use-cases
+src/Service/Author.hs           author create/edit/list use-cases
 src/Db/Config.hs                DbConfig + defaultConfig
 src/Db/Connection.hs            withConnection / withTransaction
 src/Ui/Render.hs                console formatting
-scripts/SmokeCrud.hs            manual CRUD check (runghc)
+scripts/SmokeCrud.hs            manual resource CRUD check
+scripts/SmokeAuthor.hs          manual author CRUD check
 sql/schema.sql                  9 tables
 ```
 
@@ -120,6 +122,6 @@ Change them there if your MySQL setup differs.
 1. `User` and `UsageStat` domain types + repositories (needed for statistics).
 2. Search filters (`Model/Filters.hs`, `Repository/Search.hs`).
 3. Statistics queries (`Service/Stats.hs`).
-4. Standalone author/URL management, if you want it outside a resource draft.
+4. Dictionary listings (`Model/Kind.hs`, `Purpose`, `UsageCondition`) for UI dropdowns.
 5. Console UI in `app/Main.hs` + `src/Ui/Menu.hs`.
 
